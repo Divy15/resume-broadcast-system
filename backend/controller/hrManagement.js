@@ -23,9 +23,43 @@ async function storeHrInfo(req,res,next){
     } catch (error) {
         next(error);
     }
+};
+
+// get postion list filtered or not filtered
+async function getPostionList(req, res, next){
+    const {positionName} = req.body;
+    try {
+        const result = await pgClient('select * from hrmanagement_get_position_list($1)', [positionName]);
+
+        if(result.rows.length === 0){
+            return res.status(204).send({success : true, message: 'No postion found.'})
+        }
+
+        return res.send({success : true, data : result.rows, messsage : `Found position list which length ${result.rows.length}`});
+    } catch (error) {
+        next(error);
+    }
+};
+
+// get hr list by filtered(filter by company name or hr name) or non filtered
+async function getHRInfoList(req,res,next){
+    const {filtername} = req.body;
+    try {
+        const response = await pgClient('select * from hrmanagement_get_hr_info_list($1)', [filtername]);
+
+        if(response.rows.length === 0){
+            return res.status(204).send({success : true, message : 'No HR information found.'});
+        };
+
+        return res.send({success : true, data : response.rows, message : `HR information found which length ${response.rows.length} `});
+    } catch (error) {
+        next(error);
+    }
 }
 
 module.exports = {
     dashboardCount,
-    storeHrInfo
+    storeHrInfo,
+    getPostionList,
+    getHRInfoList
 };

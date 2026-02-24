@@ -1,6 +1,10 @@
 import api from '../../../api/axiosInstance';
 import { ApiRoutes } from './../../../api/apiRoutes';
 
+interface GetHRInformationListPoprs{
+    filtername : string | null;
+};
+
 export const HRDashboardService = {
 
     // get dashboard summary 
@@ -9,5 +13,9 @@ export const HRDashboardService = {
         return response?.data?.data;
     },
 
-
+    // get hr information list
+    getHRInformationList : async (values:GetHRInformationListPoprs) => {
+        const response = await api.post(ApiRoutes.hrmanagement.hrInfoList, values);
+        return response?.data;
+    }
 }

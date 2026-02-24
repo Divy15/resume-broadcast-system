@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { HRDashboardService } from './HRDashboard.service';
+import { HrInformationList } from './HRInformationList.component';
 
 // Define types for your filters for better TS support
 type FilterType = 'name' | 'last_email' | 'no_email' | '';
@@ -12,6 +13,14 @@ interface StatsCardProps {
 interface summaryResponseDataProps{
   total_hr : string | number,
   total_company : string | number
+};
+
+interface HRInformationResponseList{
+  company_name : string,
+  hr_name : string,
+  id : number,
+  is_applied : boolean | null,
+  is_verified : boolean | null
 };
 
 // Reusable sub-component for the stats
@@ -27,7 +36,8 @@ const StatCard: React.FC<StatsCardProps> = ({ label, count }) => (
 export const HRFilterComp: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filter, setFilter] = useState<FilterType>('');
-  const [summaryData, setSummaryData] = useState<Array<summaryResponseDataProps | undefined>>([])
+  const [summaryData, setSummaryData] = useState<Array<summaryResponseDataProps | undefined>>([]);
+  const [hrInfoList, setHRInfoList] = useState<Array<HRInformationResponseList>>([]);
 
   useEffect(() => {
     const fetch = async () => {
@@ -37,6 +47,19 @@ export const HRFilterComp: React.FC = () => {
 
     fetch();
   }, [])
+
+  useEffect(() => {
+    const fetchHRInfoList = async() => {
+      const data = {filtername : searchTerm};
+      const response = await HRDashboardService.getHRInformationList(data);
+      console.log('HR list info:', response);
+      if(response?.data?.length !== 0){
+      setHRInfoList(response?.data)
+      };
+    };
+
+    fetchHRInfoList();
+  }, [searchTerm, filter]);
 
   return (
     <div className="w-full bg-slate-50">
@@ -73,8 +96,9 @@ export const HRFilterComp: React.FC = () => {
         </div>
 
         {/* This is where your HR Table/List would go */}
-        <div className="bg-white rounded-xl border border-slate-200 h-64 flex items-center justify-center text-slate-400 italic">
-          HR List results will appear here based on "{searchTerm || 'no search'}"
+        <div className="bg-white rounded-xl border border-slate-200 flex text-slate-400 italic">
+          <HrInformationList 
+          dataList = {hrInfoList}/>
         </div>
       </div>
     </div>

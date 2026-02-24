@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.hr_info
     company_website character varying COLLATE pg_catalog."default",
     position_id integer,
     is_applied boolean DEFAULT false,
+    is_verified boolean,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 )
 
@@ -142,3 +143,68 @@ $$;
 
 ALTER TABLE position_master
 ADD CONSTRAINT position_master_position_name_key UNIQUE (position_name);
+
+
+CREATE OR REPLACE FUNCTION public.hrmanagement_get_position_list(
+	in_positionname character varying)
+    RETURNS TABLE(id integer, position_name character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+BEGIN
+
+    IF in_positionname IS NULL THEN
+        RETURN QUERY
+        SELECT pm.id, pm.position_name
+        FROM position_master pm;
+
+    ELSE
+        RETURN QUERY
+        SELECT pm.id, pm.position_name
+        FROM position_master pm
+        WHERE pm.position_name ILIKE in_positionname || '%';
+
+    END IF;
+
+END;
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION hrmanagement_get_hr_info_list(in_filtername character varying)
+RETURNS TABLE(id integer,
+company_name character varying,
+hr_name character varying,
+position_name character varying,
+is_applied boolean,
+is_verified boolean)
+LANGUAGE 'plpgsql'
+SECURITY DEFINER PARALLEL UNSAFE
+
+AS $$
+DECLARE SQL VARCHAR;
+BEGIN
+
+	SQL := 'select
+	hr.id,
+	hr.company_name,
+	hr.hr_name,
+	pm.position_name,
+	hr.is_applied,
+	hr.is_verified
+	from hr_info hr
+	join position_master pm on pm.id = hr.position_id';
+
+	IF in_filtername IS NOT NULL THEN
+	SQL := SQL || ' where hr.company_name ilike ' || quote_literal(in_filtername || '%') || ' OR hr.hr_name ilike ' ||
+	quote_literal(in_filtername || '%');
+	END IF;
+
+	RETURN QUERY EXECUTE SQL;
+	
+
+END;
+$$;
