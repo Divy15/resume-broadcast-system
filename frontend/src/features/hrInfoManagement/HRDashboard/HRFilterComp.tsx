@@ -51,8 +51,11 @@ const StatCard: React.FC<StatsCardProps> = ({ label, count }) => (
 export const HRFilterComp: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filter, setFilter] = useState<FilterType>('');
-  const [summaryData, setSummaryData] = useState<Array<summaryResponseDataProps | undefined>>([]);
-  const [hrInfoList, setHRInfoList] = useState<Array<HRInformationResponseList>>([]);
+  const [summaryData, setSummaryData] = useState<Array<summaryResponseDataProps | null>>([{
+    total_company : 0,
+    total_hr : 0
+  }]);
+  const [hrInfoList, setHRInfoList] = useState<Array<HRInformationResponseList> | []>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const navigate = useNavigate();
 
@@ -68,7 +71,15 @@ export const HRFilterComp: React.FC = () => {
   useEffect(() => {
     const fetch = async () => {
       const response = await HRDashboardService.getHRDashboardCount();
-      setSummaryData(response);
+      if(response?.length !== 0){
+       return setSummaryData(response);
+      };
+      setSummaryData([
+        {
+          total_company : 0,
+          total_hr : 0
+        }
+      ])
     };
 
     fetch();
@@ -79,7 +90,7 @@ export const HRFilterComp: React.FC = () => {
       const data = {searchTerm : searchTerm, filterName: filter};
       const response = await HRDashboardService.getHRInformationList(data);
       if(response?.data?.length !== 0){
-      setHRInfoList(response?.data)
+      return setHRInfoList(response?.data)
       };
     };
 

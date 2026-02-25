@@ -9,7 +9,7 @@ interface HRInformationResponseList {
 }
 
 interface HRInforListProps {
-  dataList: HRInformationResponseList[];
+  dataList: HRInformationResponseList[] | [];
   selectedIds: number[];
   setSelectedIds: React.Dispatch<React.SetStateAction<number[]>>; 
 }
@@ -25,14 +25,14 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
 
   // Toggle Select All
   const toggleSelectAll = () => {
-    if (selectedIds.length === dataList.length) {
+    if (selectedIds.length === dataList?.length) {
       setSelectedIds([]); // Deselect all
     } else {
-      setSelectedIds(dataList.map((item) => item.id)); // Select all IDs
+      setSelectedIds(dataList?.map((item) => item.id)); // Select all IDs
     }
   };
 
-  const isAllSelected = dataList.length > 0 && selectedIds.length === dataList.length;
+  const isAllSelected = dataList?.length > 0 && selectedIds.length === dataList?.length;
 
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:max-h-125 overflow-y-hidden">
@@ -58,7 +58,7 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {dataList.length > 0 ? (
+          {dataList?.length > 0 ? (
             dataList.map((item, index) => (
               <tr key={item.id} className={`
     transition-colors
