@@ -26,6 +26,6 @@ export const HRFormService = {
     // position list filtered or non filtered 
     positionList : async(values: positionListProps) => {
         const response = await api.post(ApiRoutes.hrmanagement.positionList, values);
-        return response?.data?.data;
+        return response?.data;
     },
 }

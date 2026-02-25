@@ -174,17 +174,16 @@ $BODY$;
 
 
 
-CREATE OR REPLACE FUNCTION hrmanagement_get_hr_info_list(in_filtername character varying)
-RETURNS TABLE(id integer,
-company_name character varying,
-hr_name character varying,
-position_name character varying,
-is_applied boolean,
-is_verified boolean)
-LANGUAGE 'plpgsql'
-SECURITY DEFINER PARALLEL UNSAFE
+CREATE OR REPLACE FUNCTION public.hrmanagement_get_hr_info_list(
+	in_searchterm character varying,
+	in_filtername character varying)
+    RETURNS TABLE(id integer, company_name character varying, hr_name character varying, position_name character varying, is_applied boolean, is_verified boolean) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
 
-AS $$
+AS $BODY$
 DECLARE SQL VARCHAR;
 BEGIN
 
@@ -196,15 +195,26 @@ BEGIN
 	hr.is_applied,
 	hr.is_verified
 	from hr_info hr
-	join position_master pm on pm.id = hr.position_id';
+	join position_master pm on pm.id = hr.position_id
+	WHERE 1 = 1';
 
-	IF in_filtername IS NOT NULL THEN
-	SQL := SQL || ' where hr.company_name ilike ' || quote_literal(in_filtername || '%') || ' OR hr.hr_name ilike ' ||
-	quote_literal(in_filtername || '%');
+	IF in_searchterm IS NOT NULL THEN
+	SQL := SQL || ' AND (hr.company_name ilike ' || quote_literal(in_searchterm || '%') || ' OR hr.hr_name ilike ' ||
+	quote_literal(in_searchterm || '%') || ' )';
 	END IF;
+
+	IF in_filtername <> 'all_records' THEN
+		IF in_filtername = 'not_applied_yet' THEN
+			SQL := SQL || ' AND hr.is_applied = false';
+		ELSIF in_filtername = 'hr_desc' THEN
+			SQL := SQL || ' ORDER BY hr.hr_name DESC';
+		ELSE SQL := SQL || 'ORDER BY hr.hr_name';
+		END IF;
+	END IF;
+		
 
 	RETURN QUERY EXECUTE SQL;
 	
 
 END;
-$$;
+$BODY$;

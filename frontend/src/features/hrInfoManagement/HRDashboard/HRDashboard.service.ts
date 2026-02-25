@@ -2,7 +2,8 @@ import api from '../../../api/axiosInstance';
 import { ApiRoutes } from './../../../api/apiRoutes';
 
 interface GetHRInformationListPoprs{
-    filtername : string | null;
+    searchTerm: string | null;
+    filterName : string | null;
 };
 
 export const HRDashboardService = {

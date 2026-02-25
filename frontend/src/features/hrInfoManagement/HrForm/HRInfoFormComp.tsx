@@ -81,8 +81,8 @@ export const HRInfoFormComp: React.FC = () => {
 
       const data = {positionName : formData?.positionName};
       const response = await HRFormService.positionList(data);
-      if(response?.length !== 0){
-        setPositinList(response);
+      if(response?.data){
+        setPositinList(response?.data);
       };
     };
 

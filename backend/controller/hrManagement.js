@@ -43,9 +43,9 @@ async function getPostionList(req, res, next){
 
 // get hr list by filtered(filter by company name or hr name) or non filtered
 async function getHRInfoList(req,res,next){
-    const {filtername} = req.body;
+    const {searchTerm, filterName} = req.body;
     try {
-        const response = await pgClient('select * from hrmanagement_get_hr_info_list($1)', [filtername]);
+        const response = await pgClient('select * from hrmanagement_get_hr_info_list($1, $2)', [searchTerm, filterName]);
 
         if(response.rows.length === 0){
             return res.status(204).send({success : true, message : 'No HR information found.'});
