@@ -1,34 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { HRDashboardService } from './HRDashboard.service';
-import { HrInformationList } from './HRInformationList.component';
+import { HRDashboardService } from '../HRDashboard.service';
+import { HrInformationList } from './HRInformationList';
 import { useNavigate } from 'react-router-dom';
-
-// Define types for your filters for better TS support
-type FilterType = 'name' | 'last_email' | 'no_email' | '';
-
-interface StatsCardProps {
-  label: string;
-  count: number | string | undefined;
-}
-
-interface summaryResponseDataProps{
-  total_hr : string | number,
-  total_company : string | number
-};
-
-interface HRInformationResponseList{
-  company_name : string,
-  hr_name : string,
-  id : number,
-  position_name: string,
-  is_applied : boolean | null,
-  is_verified : boolean | null
-};
-
-interface HRSortOptions{
-  label: string,
-  value: string
-};
+import { HRStatCard } from './HRStatCard';
+import {type FilterType, type summaryResponseDataProps, type HRInformationResponseList, type HRSortOptions} from "../types/dashboard.types";
 
 // Filter Array For HR list 
 const hrSortOptions: Array<HRSortOptions> = [
@@ -37,16 +12,6 @@ const hrSortOptions: Array<HRSortOptions> = [
   { label: 'HR Name (Z–A)', value: 'hr_desc' },
   { label: 'Not Applied Yet', value: 'not_applied_yet' },
 ];
-
-// Reusable sub-component for the stats
-const StatCard: React.FC<StatsCardProps> = ({ label, count }) => (
-  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-    <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">{label}</p>
-    <div className="flex items-center h-full justify-start">
-    <p className="text-3xl font-bold text-indigo-600 mt-1">+{count}</p>
-    </div>
-  </div>
-);
 
 export const HRFilterComp: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -103,8 +68,8 @@ export const HRFilterComp: React.FC = () => {
         
         {/* Counter Cards Section */}
         <div className={`grid grid-cols-1 md:grid-cols-3 gap-4`}>
-          <StatCard label="Total Registered Company" count={summaryData[0]?.total_company} />
-          <StatCard label="Total Registered HR" count={summaryData[0]?.total_hr} />
+          <HRStatCard label="Total Registered Company" count={summaryData[0]?.total_company} />
+          <HRStatCard label="Total Registered HR" count={summaryData[0]?.total_hr} />
           
           {/* Action/Search Card */}
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center space-y-3">

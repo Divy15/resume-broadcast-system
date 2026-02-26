@@ -1,18 +1,4 @@
-
-interface HRInformationResponseList {
-  company_name: string;
-  hr_name: string;
-  id: number;
-  position_name: string;
-  is_applied: boolean | null;
-  is_verified: boolean | null;
-}
-
-interface HRInforListProps {
-  dataList: HRInformationResponseList[] | [];
-  selectedIds: number[];
-  setSelectedIds: React.Dispatch<React.SetStateAction<number[]>>; 
-}
+import {type HRInforListProps} from "../types/dashboard.types"
 
 export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRInforListProps) => {
 

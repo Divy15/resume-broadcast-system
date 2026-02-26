@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { HRFilterComp } from "./HRFilterComp";
+import { HRFilterComp } from "./components/HRFilter";
 
 
 export const HRDashboardPage = () => {
