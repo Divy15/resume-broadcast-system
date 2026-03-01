@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS public.application_history
     applied_date timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 )
 
+------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.hr_info
 (
     id serial primary key,
@@ -19,6 +20,7 @@ CREATE TABLE IF NOT EXISTS public.hr_info
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 )
 
+------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.position_master
 (
     id serial primary key,
@@ -26,16 +28,18 @@ CREATE TABLE IF NOT EXISTS public.position_master
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 )
 
+------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.template_master
 (
     id serial primary key,
-    position_id integer,
+    template_name character varying,
     subject_title character varying COLLATE pg_catalog."default",
     body character varying COLLATE pg_catalog."default",
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 )
 
-insert into template_master (subject_title, body, position_id)
+------------------------------------------------------------
+insert into template_master (subject_title, body, template_name)
 values
 (
 'Application for {{position_name}} Position at {{company_name}}',
@@ -56,7 +60,7 @@ Please find my resume attached.
 
 Best regards,
 {{your_name}}',
-1
+'Backend Application Template'
 ),
 (
 'Application for {{position_name}} Role at {{company_name}}',
@@ -70,14 +74,16 @@ I have attached my resume for your consideration.
 
 Sincerely,
 {{your_name}}',
-2
+'Full Stack Developer Template'
 );
 
+------------------------------------------------------------
 INSERT INTO position_master (position_name)
 values
 ('Backend Developer'),
 ('Full Stack Developer');
 
+------------------------------------------------------------
 create or replace function hrmanagement_dashboard_summary()
 returns table(total_company bigint, total_hr bigint)
 language plpgsql
@@ -96,7 +102,7 @@ begin
 end;
 $body$;
 
-
+------------------------------------------------------------
 CREATE OR REPLACE FUNCTION hrmanagement_store_hr_info(
     in_companyname varchar,
     in_companywebsite varchar,
@@ -140,11 +146,11 @@ BEGIN
 END;
 $$;
 
-
+------------------------------------------------------------
 ALTER TABLE position_master
 ADD CONSTRAINT position_master_position_name_key UNIQUE (position_name);
 
-
+------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.hrmanagement_get_position_list(
 	in_positionname character varying)
     RETURNS TABLE(id integer, position_name character varying) 
@@ -172,8 +178,7 @@ BEGIN
 END;
 $BODY$;
 
-
-
+------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.hrmanagement_get_hr_info_list(
 	in_searchterm character varying,
 	in_filtername character varying)
@@ -218,3 +223,52 @@ BEGIN
 
 END;
 $BODY$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION hrmanagement_get_template_list()
+RETURNS TABLE(id integer, template_name character varying)
+LANGUAGE plpgsql
+SECURITY DEFINER PARALLEL UNSAFE
+
+AS $$
+BEGIN
+
+-- select * from hrmanagement_get_template_list()
+
+RETURN QUERY(
+	SELECT tm.id, tm.template_name
+	FROM template_master tm
+);
+
+END;
+$$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION hrmanagement_get_selected_ht_info(data jsonb)
+RETURNS TABLE(
+    id integer,
+    company_name character varying,
+    hr_name character varying,
+    email character varying
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+PARALLEL UNSAFE
+AS $$
+BEGIN
+
+-- select * from hrmanagement_get_selected_ht_info('[1,2]'::jsonb)
+
+    RETURN QUERY
+    SELECT 
+        hi.id, 
+        hi.company_name, 
+        hi.hr_name, 
+        hi.email
+    FROM hr_info hi
+    WHERE hi.id IN (
+        SELECT value::int
+        FROM jsonb_array_elements_text(data)
+    );
+END;
+$$;

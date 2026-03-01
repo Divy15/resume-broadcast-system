@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
-import { HRDashboardPage } from "./features/hrInfoManagement/HRDashboard/HRDashboardPage"
-import { HRInfoFormPage } from "./features/hrInfoManagement/HrForm/HRInfoFormPage"
+import { HRDashboardPage } from "./features/hrInfoManagement/HRDashboard/HRDashboard.page"
+import { HRInfoFormPage } from "./features/hrInfoManagement/HrForm/HRInfoForm.page"
 import { TemplateSelection } from "./features/hrInfoManagement/HRTemplateSelection/TemplateSelection.page"
 
 

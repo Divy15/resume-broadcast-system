@@ -1,5 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { getTemplateList, getSelectedHRInfoList } from "./Template.service";
+import { type selectedHRInfoList } from "./types/hrTemplate.types";
 
 export const TemplateSelection = () => {
   const location = useLocation();
@@ -9,26 +11,29 @@ export const TemplateSelection = () => {
   const selectedIds = location.state?.selectedIds || [];
 
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
-  const [hrDetails, setHrDetails] = useState<any[]>([]); // To be populated by API
+  const [hrDetails, setHrDetails] = useState<selectedHRInfoList[]>([]); // To be populated by API
+  const [templates, setTemplates] = useState<{id: number, template_name: string}[]>([]); // To be populated by API
 
-  // Mock fetching data for the table based on selectedIds
+  // Get template list from API 
+  // Get selected HR info from API based on selectedIds
   useEffect(() => {
-    // In reality: const data = await Service.getMultipleHR(selectedIds);
-    // Mocking for UI demonstration:
-    const mockData = selectedIds.map((id: number) => ({
-      id,
-      company_name: "Tech Corp",
-      hr_name: "John Doe",
-      email: "john.doe@techcorp.com",
-    }));
-    setHrDetails(mockData);
-  }, [selectedIds]);
+    // Fetch Template list
+    const fetchTemplates = async () => {
+      const templates = await getTemplateList();
+      setTemplates(templates?.data);
+    };
 
-  const templates = [
-    { id: "1", name: "Formal Inquiry", content: "Dear HR, I am interested in..." },
-    { id: "2", name: "Follow-up", content: "Hello, following up on our conversation..." },
-    { id: "3", name: "Casual Introduction", content: "Hi! I saw your profile and..." },
-  ];
+    // Fetch Selected HR Info
+    const fetchSelectedHRInfo = async () => {
+      if(selectedIds.length > 0){
+        const hrInfoList = await getSelectedHRInfoList(selectedIds);
+        setHrDetails(hrInfoList?.data);
+      }
+    };
+
+    fetchSelectedHRInfo();
+    fetchTemplates();
+  },[]);
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center py-12 px-4">
@@ -56,17 +61,9 @@ export const TemplateSelection = () => {
               >
                 <option value="">-- Click to choose a template --</option>
                 {templates.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
+                  <option key={t.id} value={t.id}>{t.template_name}</option>
                 ))}
               </select>
-
-              {selectedTemplate && (
-                <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-lg animate-in fade-in duration-300">
-                  <p className="text-sm text-indigo-900 leading-relaxed italic">
-                    "{templates.find(t => t.id === selectedTemplate)?.content}"
-                  </p>
-                </div>
-              )}
             </section>
 
             <hr className="border-slate-100" />

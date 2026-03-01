@@ -4,6 +4,8 @@ export const ApiRoutes = {
         "dashboardSummary" : "/hr/management/dashboard/summary",
         "storeHRInfo" : "/hr/management/store/hr/info",
         "positionList" : "/hr/management/position/list",
-        "hrInfoList" : "/hr/management/hr/information/list"
+        "hrInfoList" : "/hr/management/hr/information/list",
+        "templateList" : "/hr/management/template/list",
+        "selectedHRInfoList" : "/hr/management/selected/hr/information/list"
     }
 };

@@ -1,18 +1,6 @@
 import api from '../../../api/axiosInstance';
 import { ApiRoutes } from './../../../api/apiRoutes';
-
-interface storeHRInfoProprs {
-companyName: string; 
-companyWebsite: string; 
-hrName: string; 
-hrEmail: string; 
-hrMobile: string; 
-positionName: string;
-};
-
-interface positionListProps {
-positionName : string | null;
-};
+import { type storeHRInfoProprs, type positionListProps } from './types/hrForm.types'
 
 export const HRFormService = {
 

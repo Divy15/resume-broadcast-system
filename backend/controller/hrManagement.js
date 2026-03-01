@@ -21,6 +21,7 @@ async function storeHrInfo(req,res,next){
 
         return res.send({success : true});
     } catch (error) {
+        console.error('Error storing HR information:', error);
         next(error);
     }
 };
@@ -55,11 +56,44 @@ async function getHRInfoList(req,res,next){
     } catch (error) {
         next(error);
     }
-}
+};
+
+// get template list
+async function getTemplateList(req,res,next){
+    try {
+        const response = await pgClient('select * from hrmanagement_get_template_list()', []);
+
+        if(response.rows.length === 0){
+            return res.status(204).send({success : true, message : 'No template found.'});
+        };
+
+        return res.send({success : true, data : response.rows, message : `Template list found which length ${response.rows.length} `});
+    } catch (error) {
+        next(error);
+    }
+};
+
+// get selected hr info list
+async function getSelectedHRInfoList(req,res,next){
+    const {hrIds} = req.body;
+    try {
+        const response = await pgClient('select * from hrmanagement_get_selected_ht_info($1::jsonb)', [JSON.stringify(hrIds)]);
+
+        if(response.rows.length === 0){
+            return res.status(204).send({success : true, message : 'No HR information found.'});
+        };
+
+        return res.send({success : true, data : response.rows, message : `HR information found which length ${response.rows.length} `});
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     dashboardCount,
     storeHrInfo,
     getPostionList,
-    getHRInfoList
+    getHRInfoList,
+    getTemplateList,
+    getSelectedHRInfoList
 };
