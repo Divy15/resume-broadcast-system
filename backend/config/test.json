@@ -7,6 +7,14 @@
             "PASSWORD" : "DB_PASSWORD",
             "HOST" : "DB_HOST",
             "DATABASE" : "DB_NAME"
+        },
+        "REDIS": {
+            "HOST" : "REDIS_HOST",
+            "PORT" : "REDIS_PORT"
+        },
+        "EMAIL": {
+            "USER" : "USER_EMAIL",
+            "PASS" : "USER_PASS"
         }
     }
 }

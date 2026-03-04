@@ -3,6 +3,7 @@ const router = express.Router();
 const {celebrate, Segments} = require('celebrate');
 const hrManagementController = require('../controller/hrManagement.js');
 const paramValidation = require('../validation/hrManagement.js');
+const upload = require('../middleware/upload');
 
 
 // Get Dashboard summary in HR Management page
@@ -55,5 +56,12 @@ router.route('/selected/hr/information/list')
     }),
     hrManagementController.getSelectedHRInfoList
 );
+
+// Store the user selected template 
+router.route('/store/template/selection')
+.post(
+    upload.single('resume'),
+    hrManagementController.storeTemplateSelection
+)
 
 module.exports = router;

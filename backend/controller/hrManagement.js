@@ -1,5 +1,5 @@
 const {pgClient} = require('../db');
-
+const emailQueue = require('../queues/emailQueue');
 
 // get dashboard summary in hr managemenr page
 async function dashboardCount(req,res,next){
@@ -89,11 +89,57 @@ async function getSelectedHRInfoList(req,res,next){
     }
 };
 
+// Store template selection data 
+// And return norification event
+async function storeTemplateSelection(req,res,next){
+    const { position, template, hrIds} = req.body;
+    const file = req.file;
+    try { 
+        const filePath = `/uploads/${file.filename}`;
+
+        // ✅ Convert comma string to array of numbers
+        const hrIdsArray = hrIds.split(",").map(id => ({hr_id: Number(id.trim()),status: "pending"}));
+
+        // ✅ Convert to JSON (Postgres jsonb compatible)
+        const hrIdsJson = JSON.stringify(hrIdsArray);
+
+        // ✅ Calculate total count
+        const totalCount = hrIdsArray.length;
+
+        const response = await pgClient(
+          `SELECT * FROM hrmanagement_store_bulk_template_info(
+              $1,$2,$3,$4,$5::jsonb,$6
+          )`,
+          [1, position, template, filePath, hrIdsJson, totalCount]
+        );
+
+        await emailQueue.add('send-bulk-email', {
+            campaignId: response.rows[0].campaign_id,
+            hrIds: hrIdsArray,
+            templateId: template,
+            resumePath: filePath,
+            position: position,
+            notificationId : response.rows[0].notification_id
+        },{
+          attempts: 3,      // retry 3 times
+          backoff: {
+            type: 'exponential',
+            delay: 5000,        // 5 sec
+          },
+        });
+
+        return res.send({success : true, data : response.rows});
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     dashboardCount,
     storeHrInfo,
     getPostionList,
     getHRInfoList,
     getTemplateList,
-    getSelectedHRInfoList
+    getSelectedHRInfoList,
+    storeTemplateSelection
 };

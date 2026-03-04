@@ -272,3 +272,207 @@ BEGIN
     );
 END;
 $$;
+
+------------------------------------------------------------
+create table user_resume(
+id serial primary key,
+usercode integer,
+filename character varying,
+filepath character varying,
+upload_at timestamp default current_timestamp
+);
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION hrmanagment_store_resume_info(
+in_usercode integer,
+in_filename character varying,
+in_filepath character varying
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER PARALLEL UNSAFE
+
+AS $$
+BEGIN
+
+-- select * from hrmanagment_store_resume_info(1, 'abc.pdf', 'xyz/abc.pdf')
+
+INSERT INTO user_resume(usercode, filename, filepath)
+values (in_usercode, in_filename, in_filepath);
+
+END;
+$$;
+
+------------------------------------------------------------
+CREATE TABLE event_master (
+    event_id SERIAL PRIMARY KEY,
+    event_type VARCHAR(50) NOT NULL -- e.g., 'BULK_EMAIL', 'SINGLE_EMAIL', 'RESUME_UPDATE'
+);
+
+------------------------------------------------------------
+INSERT INTO event_master (event_type) VALUES ('BULK_EMAIL'), ('SINGLE_EMAIL');
+
+------------------------------------------------------------
+CREATE TABLE email_campaigns (
+    campaign_id SERIAL PRIMARY KEY,
+    event_id INTEGER REFERENCES event_master(event_id),
+    position_name character varying,
+    template_id INTEGER,
+    resume_path character varying,
+    selected_hr_ids jsonb, -- Array of IDs
+    total_count INTEGER,
+    sent_count INTEGER DEFAULT 0,
+    status character varying DEFAULT 'PROCESSING', -- 'PROCESSING', 'COMPLETED', 'FAILED'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+------------------------------------------------------------
+CREATE TABLE notifications (
+    notification_id SERIAL PRIMARY KEY,
+    campaign_id INTEGER ,
+    notification_message TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.hrmanagement_store_bulk_template_info(
+	in_eventid integer,
+	in_positionname character varying,
+	in_templateid integer,
+	in_resumepath character varying,
+	in_selected_hr_ids jsonb,
+	in_totalcount integer)
+    RETURNS TABLE(campaign_id integer, notification_id integer) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+DECLARE
+    v_campaign_id integer;
+    v_notification_id integer;
+BEGIN
+
+    -- 1️⃣ Insert campaign and capture ID
+    INSERT INTO email_campaigns (
+        event_id,
+        position_name,
+        template_id,
+        resume_path,
+        selected_hr_ids,
+        total_count,
+        status
+    )
+    VALUES (
+        in_eventid,
+        in_positionname,
+        in_templateid,
+        in_resumepath,
+        in_selected_hr_ids,
+        in_totalcount,
+        'PROCESSING'
+    )
+    RETURNING email_campaigns.campaign_id
+    INTO v_campaign_id;
+
+    -- 2️⃣ Insert notification using captured campaign_id
+    INSERT INTO notifications (
+        campaign_id,
+        notification_message,
+        is_read
+    )
+    VALUES (
+        v_campaign_id,
+        'Start Bulk Email Send.',
+        false
+    )
+    RETURNING notifications.notification_id
+    INTO v_notification_id;
+
+    -- 3️⃣ Return both values
+    RETURN QUERY
+    SELECT v_campaign_id, v_notification_id;
+
+END;
+$BODY$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION email_campaign_get_job_info(
+    in_hrid INTEGER,
+    in_campaignid INTEGER,
+    in_templateid INTEGER,
+	in_sendCount INTEGER
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    hr_data JSONB;
+    template_data JSONB;
+BEGIN
+
+    -- 1️⃣ Update JSONB status to 'processing'
+    UPDATE email_campaigns
+    SET selected_hr_ids = (
+        SELECT jsonb_agg(
+            CASE 
+                WHEN (elem->>'hr_id')::INT = in_hrid
+                THEN jsonb_set(elem, '{status}', '"processing"')
+                ELSE elem
+            END
+        )
+        FROM jsonb_array_elements(selected_hr_ids) elem
+    ), sent_count = in_sendCount
+    WHERE campaign_id = in_campaignid;
+
+    -- 2️⃣ Get HR info as JSON
+    SELECT to_jsonb(h)
+    INTO hr_data
+    FROM (
+        SELECT company_name, hr_name, email
+        FROM hr_info
+        WHERE id = in_hrid
+    ) h;
+
+    -- 3️⃣ Get Template info as JSON
+    SELECT to_jsonb(t)
+    INTO template_data
+    FROM (
+        SELECT subject_title, body
+        FROM template_master
+        WHERE id = in_templateid
+    ) t;
+
+    -- 4️⃣ Return combined JSON array
+    RETURN jsonb_build_array(
+        jsonb_build_object('hr_info', hr_data),
+        jsonb_build_object('template_info', template_data)
+    );
+
+END;
+$$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION email_campaign_complete_email_campaign_job(
+    in_campaignid INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+
+    UPDATE email_campaigns
+    SET selected_hr_ids = (
+        SELECT jsonb_agg(
+            jsonb_set(elem, '{status}', '"completed"')
+        )
+        FROM jsonb_array_elements(selected_hr_ids) elem
+    ), status = 'COMPLETED'
+    WHERE campaign_id = in_campaignid;
+
+END;
+$$;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { HRFormService } from "../HRForm.service";
-import {FormField} from "../components/FormField";
+import {FormField} from "../../../CommonComponent/FormField";
 import {type FormData, type FormErrors, type PositionListResult } from "../types/hrForm.types";
 
 export const HRInfoFormComp: React.FC = () => {
