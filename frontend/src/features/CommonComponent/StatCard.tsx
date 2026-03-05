@@ -1,6 +1,9 @@
-import {type StatsCardProps} from '../types/dashboard.types.ts'
+export interface StatsCardProps {
+  label: string;
+  count: number | string | undefined;
+}
 
-export const HRStatCard: React.FC<StatsCardProps> = ({ label, count=0 }) => (
+export const StatCard: React.FC<StatsCardProps> = ({ label, count=0 }) => (
   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
     <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">{label}</p>
     <div className="flex items-center h-full justify-start">

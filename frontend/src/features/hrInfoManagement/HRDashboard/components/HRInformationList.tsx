@@ -87,7 +87,7 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
             ))
           ) : (
             <tr>
-              <td colSpan={5} className="px-6 does i will make used chaipatti to carbon? how many plant are there in india are doing this?py-10 text-center text-slate-500 italic">
+              <td colSpan={5} className="px-6 py-10 text-center text-slate-500 italic">
                 No HR information found.
               </td>
             </tr>

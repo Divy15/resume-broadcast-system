@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { HRDashboardService } from '../HRDashboard.service';
 import { HrInformationList } from './HRInformationList';
 import { useNavigate } from 'react-router-dom';
-import { HRStatCard } from './HRStatCard';
+import { StatCard } from '../../../CommonComponent/StatCard';
 import {type FilterType, type summaryResponseDataProps, type HRInformationResponseList, type HRSortOptions} from "../types/dashboard.types";
 
 // Filter Array For HR list 
@@ -68,8 +68,8 @@ export const HRFilterComp: React.FC = () => {
         
         {/* Counter Cards Section */}
         <div className={`grid grid-cols-1 md:grid-cols-3 gap-4`}>
-          <HRStatCard label="Total Registered Company" count={summaryData[0]?.total_company} />
-          <HRStatCard label="Total Registered HR" count={summaryData[0]?.total_hr} />
+          <StatCard label="Total Registered Company" count={summaryData[0]?.total_company} />
+          <StatCard label="Total Registered HR" count={summaryData[0]?.total_hr} />
           
           {/* Action/Search Card */}
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center space-y-3">

@@ -1,10 +1,4 @@
 
-// Used in HRStateCard Component
-export interface StatsCardProps {
-  label: string;
-  count: number | string | undefined;
-}
-
 // Used in HRFilter component
 export type FilterType = 'name' | 'last_email' | 'no_email' | '';
 

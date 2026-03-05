@@ -1,6 +1,9 @@
 # skip the config default.json file
 backend/config/default.json
 
+# skip the config development.json file
+backend/config/development.json
+
 # skip node modules
 backend/node_modules
 fronted/node_modules
