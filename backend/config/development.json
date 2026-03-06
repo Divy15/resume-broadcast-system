@@ -13,8 +13,8 @@
             "PORT" : 6379
         },
         "EMAIL":{
-            "USER": "gandhidivy1511@gmail.com",
-            "PASS": "buwc mcaw xdey pgcp"
+            "USER": "USER_EMAIL",
+            "PASS": "USER_EMAIL_PASSWORD"
         }
     }
 }
