@@ -23,7 +23,7 @@ export const JobsList: React.FC<Props> = ({ jobs, onSelectJob, activeJobId }) =>
           </thead>
 
           <tbody className="divide-y divide-slate-100">
-            {jobs.map((job, index) => {
+            {jobs.length > 0 && jobs.map((job, index) => {
               const isActive = activeJobId === job.jobid;
               
               return (

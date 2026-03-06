@@ -2,24 +2,37 @@ import { JobDetails } from "./components/JobDetails.component";
 import { JobsHeader } from "./components/JobsHeader.component"
 import { JobsList } from "./components/JobsList.component"
 import { StatsCard } from "./components/StatusCard.component";
-import {type Job} from "./types/EmailJobs.types";
-import { useState } from "react";
-
-// Mock Data
-const jobs: Job[] = [
-  { jobid: 111, job_event: "Bulk Email Campaign", job_status: "pending", created: new Date().toLocaleDateString() },
-  { jobid: 112, job_event: "Bulk Email Campaign", job_status: "completed", created: new Date().toLocaleDateString() },
-  { jobid: 113, job_event: "Bulk Email Campaign", job_status: "failed", created: new Date().toLocaleDateString() },
-  { jobid: 114, job_event: "Bulk Email Campaign", job_status: "completed", created: new Date().toLocaleDateString() },
-  { jobid: 115, job_event: "Bulk Email Campaign", job_status: "completed", created: new Date().toLocaleDateString() },
-  { jobid: 116, job_event: "Bulk Email Campaign", job_status: "completed", created: new Date().toLocaleDateString() }
-];
+import { getJobInfo, getJobList } from "./EmailJobs.service";
+import {type Job, type JobInfoData} from "./types/EmailJobs.types";
+import { useEffect, useState } from "react";
 
 export const EmailJobs: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [jobList, setJobList] = useState<Job[]>([]);
+  const [jobInfo, setJobInfo] = useState<Array<JobInfoData> | []>([]);
 
   // Function to clear selection (Back/Cancel action)
   const handleBack = () => setSelectedJob(null);
+
+  // Get Job list
+  useEffect(() => {
+
+    const fetchJob = async () => {
+      const response = await getJobList();
+      setJobList(response?.data);
+    };
+
+    const fetchJobInfo = async () => {
+      const response = await getJobInfo({jobid : selectedJob?.jobid});
+      setJobInfo(response?.data);
+    };
+    
+    fetchJob();
+
+    if(selectedJob?.jobid){
+    fetchJobInfo();
+    };
+  }, [selectedJob]);
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -29,13 +42,13 @@ export const EmailJobs: React.FC = () => {
         {!selectedJob ? (
           <div className="space-y-6 animate-in fade-in duration-500">
             <JobsHeader />
-            <StatsCard jobs={jobs} />
-            <JobsList jobs={jobs} onSelectJob={setSelectedJob} />
+            <StatsCard jobs={jobList} />
+            <JobsList jobs={jobList} onSelectJob={setSelectedJob} />
           </div>
         ) : (
           /* Show Details if a job IS selected */
           <div className="animate-in slide-in-from-right-4 duration-300">
-            <JobDetails job={selectedJob} onCancel={handleBack} />
+            <JobDetails job={selectedJob} onCancel={handleBack} jobInfo= {jobInfo}/>
           </div>
         )}
         

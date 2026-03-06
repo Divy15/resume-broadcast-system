@@ -48,25 +48,28 @@ const worker = new Worker(
       } catch (error) {
         console.error("Email failed:", error.message);
 
-  let status = "failed";
+        let status = "failed";
 
-  if (error.message === "INVALID_EMAIL") {
-    status = "invalid_email";
-  }
+        if (error.message === "INVALID_EMAIL") {
+          status = "invalid_email";
+        }
 
-  if (error.message === "TEMPORARY_FAILURE") {
-    status = "retry_pending";
-  }
+        if (error.message === "TEMPORARY_FAILURE") {
+          status = "retry_pending";
+        }
 
-  if (error.message === "SMTP_ERROR") {
-    status = "smtp_error";
-  }
+        if (error.message === "SMTP_ERROR") {
+          status = "smtp_error";
+        }
 
-  await pgClient(
-    "select * from email_campaign_update_hr_status($1, $2, $3)",
-    [campaignId, hrId.hr_id, status]
-  );
+        await pgClient(
+          "select * from email_campaign_update_hr_status($1, $2, $3)",
+          [campaignId, hrId.hr_id, status],
+        );
       }
+
+      // 🔥 Added delay between emails
+      await delay(2000);
     }
 
     // Update DB status to COMPLETED for email_campaign job
@@ -75,7 +78,7 @@ const worker = new Worker(
       [campaignId],
     );
     sendCount = 1;
-
+    
   },
   { connection: redis },
 );
@@ -115,23 +118,31 @@ async function sendDynamicEmail(dbData, filePath) {
     ],
   };
 
+  // /home/adminpc/Documents/bulk_hr_email_notification/backend/uploads/SSC Hall Ticket Distribution List_86-0168.pdf
+
   try {
     await transporter.sendMail(mailOptions);
     console.log(`✅ Sent to ${hrInfo.email}`);
   } catch (error) {
+    console.error("SMTP ERROR FULL:", {
+  message: error.message,
+  code: error.code,
+  response: error.response,
+  responseCode: error.responseCode,
+});
     // Invalid email
-  if (error.responseCode === 550 || error.responseCode === 553) {
-    console.log("Invalid email address");
-    throw new Error("INVALID_EMAIL");
-  }
+    if (error.responseCode === 550 || error.responseCode === 553) {
+      console.log("Invalid email address");
+      throw new Error("INVALID_EMAIL");
+    }
 
-  // Gmail temporary issue
-  if (error.responseCode === 421 || error.responseCode === 450) {
-    throw new Error("TEMPORARY_FAILURE");
-  }
+    // Gmail temporary issue
+    if (error.responseCode === 421 || error.responseCode === 450) {
+      throw new Error("TEMPORARY_FAILURE");
+    }
 
-  // Other SMTP errors
-  throw new Error("SMTP_ERROR");
+    // Other SMTP errors
+    throw new Error("SMTP_ERROR");
   }
 }
 
@@ -139,4 +150,9 @@ function replaceTemplate(template, variables) {
   return template.replace(/{{(.*?)}}/g, (_, key) => {
     return variables[key.trim()] || "";
   });
+}
+
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

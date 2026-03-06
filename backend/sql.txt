@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS public.application_history
 (
     id serial primary key,
-    company_id integer,
-    applied_date timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    hr_id integer,
+	status character varying,
+    applied_date timestamp DEFAULT CURRENT_TIMESTAMP
 )
 
 ------------------------------------------------------------
@@ -399,16 +400,16 @@ END;
 $BODY$;
 
 ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION email_campaign_get_job_info(
-    in_hrid INTEGER,
-    in_campaignid INTEGER,
-    in_templateid INTEGER,
-	in_sendCount INTEGER
-)
-RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
+CREATE OR REPLACE FUNCTION public.email_campaign_get_job_info(
+	in_hrid integer,
+	in_campaignid integer,
+	in_templateid integer,
+	in_sendcount integer)
+    RETURNS jsonb
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+AS $BODY$
 DECLARE
     hr_data JSONB;
     template_data JSONB;
@@ -453,26 +454,154 @@ BEGIN
     );
 
 END;
-$$;
+$BODY$;
 
 ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION email_campaign_complete_email_campaign_job(
-    in_campaignid INTEGER
+CREATE OR REPLACE FUNCTION public.email_campaign_complete_email_campaign_job(
+    in_campaignid integer)
+RETURNS void
+LANGUAGE plpgsql
+COST 100
+VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+    has_incomplete boolean;
+BEGIN
+
+    -- Check if any HR status is not completed
+    SELECT EXISTS (
+        SELECT 1
+        FROM email_campaigns,
+             jsonb_array_elements(selected_hr_ids) elem
+        WHERE campaign_id = in_campaignid
+        AND elem->>'status' <> 'completed'
+    ) INTO has_incomplete;
+
+    IF has_incomplete THEN
+        -- If any HR is not completed
+        UPDATE email_campaigns
+        SET status = 'ERROR'
+        WHERE campaign_id = in_campaignid;
+
+    ELSE
+        -- If all HR are completed
+        UPDATE email_campaigns
+        SET 
+        status = 'COMPLETED'
+        WHERE campaign_id = in_campaignid;
+
+    END IF;
+
+END;
+$BODY$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION email_campaign_update_hr_status(
+    in_campaignid integer,
+    in_hrid integer,
+    in_status varchar
 )
-RETURNS VOID
+RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
 
-    UPDATE email_campaigns
-    SET selected_hr_ids = (
-        SELECT jsonb_agg(
-            jsonb_set(elem, '{status}', '"completed"')
-        )
-        FROM jsonb_array_elements(selected_hr_ids) elem
-    ), status = 'COMPLETED'
-    WHERE campaign_id = in_campaignid;
+-- Update email_campaigns JSON
+UPDATE email_campaigns
+SET selected_hr_ids = (
+    SELECT jsonb_agg(
+        CASE 
+            WHEN (elem->>'hr_id')::INT = in_hrid
+            THEN jsonb_set(elem, '{status}', to_jsonb(in_status))
+            ELSE elem
+        END
+    )
+    FROM jsonb_array_elements(selected_hr_ids) elem
+)
+WHERE campaign_id = in_campaignid;
+
+-- Store logs of application if the successfully send email
+insert into application_history(hr_id, status) values (in_hrid, in_status);
+
+-- If email successfully sent
+IF in_status = 'completed' THEN
+
+    UPDATE hr_info
+    SET is_applied = true,
+        is_verified = true
+    WHERE id = in_hrid;
+
+    INSERT INTO application_history(hr_id)
+    VALUES (in_hrid);
+
+-- If email failed
+ELSE
+
+    UPDATE hr_info
+    SET is_applied = true,
+        is_verified = false
+    WHERE id = in_hrid;
+
+END IF;
 
 END;
 $$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION email_jobs_get_jobs_list()
+RETURNS TABLE(
+	jobid integer,
+	job_status varchar,
+	job_event varchar,
+	created text
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+
+-- select * from email_jobs_get_jobs_list()
+
+RETURN QUERY
+SELECT 
+	ec.campaign_id AS jobid,
+	ec.status AS job_status,
+	em.event_type AS job_event,
+	to_char(ec.created_at, 'DD/MM/YYYY') AS created
+FROM email_campaigns ec
+JOIN event_master em 
+	ON em.event_id = ec.event_id;
+
+END;
+$$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION email_campaign_get_hr_list(
+    in_campaign_id integer
+)
+RETURNS TABLE (
+    hr_id integer,
+    hr_name varchar,
+    company varchar,
+    email varchar,
+    status varchar,
+    created_at timestamp
+)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+SELECT
+    hi.id AS hr_id,
+    hi.hr_name AS hr_name,
+    hi.company_name,
+    hi.email,
+    elem->>'status' AS status,
+    ec.created_at
+FROM email_campaigns ec
+JOIN jsonb_array_elements(ec.selected_hr_ids) elem ON true
+JOIN hr_info hi 
+    ON hi.id = (elem->>'hr_id')::int
+WHERE ec.campaign_id = in_campaign_id;
+$$;
+

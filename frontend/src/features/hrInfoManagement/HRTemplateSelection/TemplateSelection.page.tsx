@@ -84,9 +84,9 @@ export const TemplateSelection = () => {
     const result = await storeTemplateInfo(finalData);
     console.log(result);
 
-  console.log("File attached:", selectedFile?.name);
-  console.log("Submitting with File...");
-  console.log("Submitting:", finalData);
+    if(result?.success){
+      navigate('/email/jobs')
+    };
   };
 
   return (
@@ -135,7 +135,7 @@ export const TemplateSelection = () => {
                 Cancel & Go Back
               </button>
               <button 
-                // disabled={!selectedTemplate || hrDetails.length === 0}
+                disabled={!selectedTemplate || hrDetails.length === 0}
                 className="px-10 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-lg disabled:bg-slate-300 transition-all"
               >
                 🚀 Send Mail to {hrDetails.length} HRs

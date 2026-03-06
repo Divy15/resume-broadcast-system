@@ -2,9 +2,9 @@ import {type Job} from "../types/EmailJobs.types";
 
 export const StatsCard: React.FC<{ jobs: Job[] }> = ({ jobs }) => {
   const total = jobs.length;
-  const completed = jobs.filter(j => j.job_status === "completed").length;
-  const failed = jobs.filter(j => j.job_status === "failed").length;
-  const pending = jobs.filter(j => j.job_status === "pending").length;
+  const completed = jobs.filter(j => j.job_status === "COMPLETED").length;
+  const failed = jobs.filter(j => j.job_status === "ERROR").length;
+  const pending = jobs.filter(j => j.job_status === "PROCESSING").length;
 
   const cards = [
     { label: "Total Jobs", value: total },
