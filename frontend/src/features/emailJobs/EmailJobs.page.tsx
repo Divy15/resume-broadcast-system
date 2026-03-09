@@ -35,8 +35,8 @@ export const EmailJobs: React.FC = () => {
   }, [selectedJob]);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="bg-slate-50 p-4 md:p-8">
+      <div className="mx-auto">
         
         {/* Only show Header and List if NO job is selected */}
         {!selectedJob ? (

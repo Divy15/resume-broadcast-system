@@ -10,7 +10,7 @@ interface Props {
 export const JobsList: React.FC<Props> = ({ jobs, onSelectJob, activeJobId }) => {
   return (
     <div className="bg-white shadow-sm rounded-xl border border-slate-200 overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-100 overflow-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/50 border-b border-slate-200">

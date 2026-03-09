@@ -1,8 +1,5 @@
-# skip the config default.json file
-backend/config/default.json
-
-# skip the config development.json file
-backend/config/development.json 
+# ignore config files
+backend/config/*
 
 # skip node modules
 backend/node_modules
