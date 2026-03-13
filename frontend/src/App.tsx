@@ -10,6 +10,7 @@ import { AuthProvider } from "./context/AuthContext"
 import Login from "./features/login/Login.page"
 import Signup from "./features/signup/Signup.page"
 import Home from "./features/home/Home.page"
+import AppPasswordPage from "./features/appPassword/AppPassword.page"
 
 
 function App() {
@@ -19,12 +20,13 @@ function App() {
     <AuthProvider >
       <BrowserRouter>
       <Navbar />
-      <main className="min-h-auto bg-gray-50">
+      <main className="min-h-auto bg-gray-50 mt-9 p-5">
         <Routes>
           <Route path="/hr/manager" element={<HRDashboardPage />} />
           <Route path="/hr/add" element={<HRInfoFormPage />} />
           <Route path="/template/selection" element={<TemplateSelection />} />
           <Route path="/email/jobs" element={<EmailJobs />} />
+          
           <Route path="/templates" element={<EmailTemplateListPage />} />
           <Route path="/templates/new" element={<EmailTemplateEditor />} />
           <Route path="/templates/edit/:id" element={<EmailTemplateEditor />} />
@@ -32,6 +34,7 @@ function App() {
           <Route path='/login' element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/email/config" element={<AppPasswordPage />} />
         </Routes>
       </main>
       </BrowserRouter>

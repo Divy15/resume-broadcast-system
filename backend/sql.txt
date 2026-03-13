@@ -605,3 +605,70 @@ JOIN hr_info hi
 WHERE ec.campaign_id = in_campaign_id;
 $$;
 
+------------------------------------------------------------
+create table user_master(
+id serial primary key,
+username character varying,
+email character varying,
+password character varying,
+country character varying,
+dob date,
+created_at timestamp default current_timestamp
+);
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION store_signup_user_data(
+in_username character varying,
+in_email character varying,
+in_password character varying,
+in_country character varying,
+in_dob date
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER PARALLEL UNSAFE
+AS $$
+BEGIN
+
+-- select * from store_signup_user_data('D', 'D@gmail.com', 'Divy', 'India', '2026-03-13')
+
+IF EXISTS (
+    SELECT 1 FROM user_master WHERE email = in_email
+) THEN
+    RAISE EXCEPTION 'Already Email is registered. Please login.'
+    USING ERRCODE = '22222';
+END IF;
+
+INSERT INTO user_master(username, email, password, country, dob)
+VALUES (in_username, in_email, in_password, in_country,
+in_dob
+);
+
+END;
+$$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION get_user_data_by_email(
+in_email character varying
+)
+RETURNS TABLE(id integer, username character varying, email character varying, password character varying)
+LANGUAGE plpgsql
+SECURITY DEFINER PARALLEL UNSAFE
+AS $$
+BEGIN
+
+-- select * from get_user_data_by_email('D@gmail.com')
+
+RETURN QUERY
+select 
+	um.id,
+	um.username,
+	um.email,
+	um.password
+from user_master um
+where um.email = in_email;
+
+END;
+$$;
+
+------------------------------------------------------------

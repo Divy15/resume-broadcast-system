@@ -13,5 +13,11 @@ export const ApiRoutes = {
     "emailJob" : {
         "getJobList": "/emailjob/job/list",
         "getJobInfo": "/emailjob/job/info",
-    }
+    },
+
+    "auth": {
+        "storeUserData": "/auth/store/user/data",
+        "loginUserData": "/auth/login/user/data"
+    },
+    
 };

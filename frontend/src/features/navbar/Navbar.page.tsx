@@ -21,6 +21,7 @@ const Navbar: React.FC = () => {
     { label: 'Dashboard', path: '/dashboard' },
     { label: 'Template Editor', path: '/templates' },
     { label: 'Homepage', path: '/home' },
+    { label: 'Email Config', path: '/email/config'}
   ];
 
   // Filter links: 
@@ -40,11 +41,11 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className="bg-white border-b border-gray-200 w-full fixed top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto px-6 md:px-17">
         <div className="flex justify-between h-16 items-center">
           
           {/* Logo and Name */}
-          <Link to={isAuthenticated ? "/dashboard" : "/home"} className="flex items-center gap-2 shrink-0">
+          <Link to={isAuthenticated ? "/hr/manager" : "/home"} className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center overflow-hidden">
               <img src={logo} alt="Logo" className="w-6 h-6" />
             </div>

@@ -90,7 +90,7 @@ export const TemplateSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center py-12 px-4">
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center py-6 md:p-12 ">
       <div className="w-full max-w-4xl space-y-6">
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
           

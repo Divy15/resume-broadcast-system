@@ -15,6 +15,9 @@
         "EMAIL":{
             "USER": "gandhidivy1511@gmail.com",
             "PASS": "buwc mcaw xdey pgcp"
+        },
+        "BCRYPT":{
+            "SALTROUND": 10
         }
     }
 }

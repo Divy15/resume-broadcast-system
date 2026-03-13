@@ -23,7 +23,7 @@ export const JobsList: React.FC<Props> = ({ jobs, onSelectJob, activeJobId }) =>
           </thead>
 
           <tbody className="divide-y divide-slate-100">
-            {jobs.length > 0 && jobs.map((job, index) => {
+            {jobs?.length > 0 ? (jobs.map((job, index) => {
               const isActive = activeJobId === job.jobid;
               
               return (
@@ -52,7 +52,13 @@ export const JobsList: React.FC<Props> = ({ jobs, onSelectJob, activeJobId }) =>
                   </td>
                 </tr>
               );
-            })}
+            })) : (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center text-sm text-slate-500 italic">
+                  No jobs found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

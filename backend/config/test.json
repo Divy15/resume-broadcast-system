@@ -15,6 +15,9 @@
         "EMAIL": {
             "USER" : "USER_EMAIL",
             "PASS" : "USER_PASS"
+        },
+        "BCRYPT":{
+            "SALTROUND": "APP_BCRYPT_SALTROUND"
         }
     }
 }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { loginUserData } from './Login.service';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -9,14 +10,21 @@ const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    // Replace with your actual API call
-    const mockUser = { id: '1', name: 'John Doe', email };
-    const mockToken = 'eyJhbGciOiJIUzI1...';
+    const data = {
+      email: email,
+      password: password
+    };
+
+    const response = await loginUserData(data);
+    console.log(response);
+
+    if(response?.success){
+      login(response?.token, response?.data);
+      navigate('/hr/manager');
+    }
     
-    login(mockToken, mockUser);
-    navigate('/dashboard');
   };
 
   return (

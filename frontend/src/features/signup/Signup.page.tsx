@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { User, Mail, Lock, Globe, Calendar, UserPlus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import type { FormDataState } from "./types";
+import { storeUserData } from "./Signup.service";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     name: "",
     email: "",
     password: "",
@@ -13,15 +15,22 @@ const Signup: React.FC = () => {
     dob: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: any) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
-    }
-    console.log("Registering user:", formData);
+    };
+
+    const fetchResponse = await storeUserData(formData);
+
+    console.log("fetchResponse", fetchResponse);
+
+    if(fetchResponse?.success){
+      navigate("/login");
+    };
     // After successful API call:
-    navigate("/login");
+    // navigate("/login");
   };
 
   return (
@@ -158,14 +167,14 @@ const Signup: React.FC = () => {
                     formatted += val.substring(0, 2);
                     // If user has typed 2 digits, add the slash immediately
                     if (val.length >= 2) {
-                      formatted += " / ";
+                      formatted += "/";
                     }
                     if (val.length > 2) {
                       formatted += val.substring(2, 4);
                     }
                     // If user has typed 4 digits total, add the second slash immediately
                     if (val.length >= 4) {
-                      formatted += " / ";
+                      formatted += "/";
                     }
                     if (val.length > 4) {
                       formatted += val.substring(4, 8);
