@@ -4,6 +4,8 @@ import { HrInformationList } from './HRInformationList';
 import { useNavigate } from 'react-router-dom';
 import { StatCard } from '../../../CommonComponent/StatCard';
 import {type FilterType, type summaryResponseDataProps, type HRInformationResponseList, type HRSortOptions} from "../types/dashboard.types";
+import { useLoader } from '../../../../context/LoaderContext';
+
 
 // Filter Array For HR list 
 const hrSortOptions: Array<HRSortOptions> = [
@@ -23,43 +25,47 @@ export const HRFilterComp: React.FC = () => {
   const [hrInfoList, setHRInfoList] = useState<Array<HRInformationResponseList> | []>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const navigate = useNavigate();
+  const {showLoader, hideLoader} = useLoader()
 
   const handleBulkSend = () => {
     console.log("Sending mail to IDs:", selectedIds);
     navigate('/template/selection', {state : {selectedIds : selectedIds}});
   };
 
+  // Initial Load: Fetch both Summary and List together
   useEffect(() => {
-    setSelectedIds([]);
-  }, [hrInfoList]);
+    const fetchInitialData = async () => {
+      showLoader(); // Show global overlay
+      try {
+        const [countRes, listRes] = await Promise.all([
+          HRDashboardService.getHRDashboardCount(),
+          HRDashboardService.getHRInformationList({ searchTerm: '', filterName: '' })
+        ]);
 
-  useEffect(() => {
-    const fetch = async () => {
-      const response = await HRDashboardService.getHRDashboardCount();
-      if(response?.length !== 0){
-       return setSummaryData(response);
-      };
-      setSummaryData([
-        {
-          total_company : 0,
-          total_hr : 0
-        }
-      ])
+        if (countRes?.length) setSummaryData(countRes);
+        if (listRes?.data) setHRInfoList(listRes.data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      } finally {
+        hideLoader(); // Hide global overlay only when both are done
+      }
     };
 
-    fetch();
-  }, [])
+    fetchInitialData();
+  }, []); // Only runs once on mount
 
+  // Filter/Search Load: Fetch only the list
   useEffect(() => {
-    const fetchHRInfoList = async() => {
-      const data = {searchTerm : searchTerm, filterName: filter};
+    // We don't want to show the GLOBAL loader for every keystroke (it's annoying)
+    // but for the first search, or a manual trigger, you can use it.
+    const fetchFilteredList = async () => {
+      const data = { searchTerm, filterName: filter };
       const response = await HRDashboardService.getHRInformationList(data);
-      if(response?.data?.length !== 0){
-      return setHRInfoList(response?.data)
-      };
+      setHRInfoList(response?.data || []);
     };
 
-    fetchHRInfoList();
+        fetchFilteredList();
+    
   }, [searchTerm, filter]);
 
   return (

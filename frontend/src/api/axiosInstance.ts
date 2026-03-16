@@ -10,4 +10,34 @@ const confg: AxiosRequestConfig = {
 
 const app = axios.create(confg);
 
+// Attach JWT to every request
+app.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+// Response interceptor
+app.interceptors.response.use(
+  (response) => response,
+  (error) => {
+
+    if (error.response && error.response.status === 401) {
+      // Token invalid or expired
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      // redirect to login page
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default app;

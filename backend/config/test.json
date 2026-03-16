@@ -18,6 +18,9 @@
         },
         "BCRYPT":{
             "SALTROUND": "APP_BCRYPT_SALTROUND"
+        },
+        "JSWTSECRET":{
+            "KEY": "APP_JWT_SECRET_KEY"
         }
     }
 }

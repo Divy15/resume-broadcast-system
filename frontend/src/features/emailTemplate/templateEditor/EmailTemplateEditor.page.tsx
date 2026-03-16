@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import type { storeTemplateFormData } from './types';
+import { storeTemplate } from './TemplateConfig.service';
+import { getTemplateInfo, updateTemplate } from './TemplateConfig.service';
 
 const DYNAMIC_TAGS = ['{{position_name}}', '{{company_name}}', '{{your_name}}', '{{hr_name}}'];
 
@@ -7,7 +10,7 @@ const EmailTemplateEditor: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<storeTemplateFormData>({
     name: '',
     subject: '',
     body: ''
@@ -19,6 +22,56 @@ const EmailTemplateEditor: React.FC = () => {
       [field]: prev[field] + ' ' + tag
     }));
   };
+
+  const handleFormSubmit = async() => {
+    console.log("final input to form submit:", formData);
+
+    const data = {
+      templateid: parseInt(id? id: ''),
+      template_name: formData.name,
+      template_subject: formData.subject,
+      template_body: formData.body
+    }
+
+    
+    if(!id){
+    const response = await storeTemplate(formData);
+    console.log("Store template result:", response);
+    navigate('/templates');
+    };
+
+    if(id){
+      const response = await updateTemplate(data);
+      console.log("update template", response);
+      navigate('/templates');
+    }
+  };
+
+  useEffect(() => {
+
+    let data= {
+      templateid: 0
+    };
+
+    if(id){
+     data.templateid = parseInt(id)
+    };
+
+    const fetchTemplateInfo = async () => {
+      const response = await getTemplateInfo(data);
+
+
+      setFormData({
+        name: response?.data[0].template_name,
+    subject: response?.data[0].subject_title,
+    body: response?.data[0].body
+      })
+    };
+
+    if(id){
+    fetchTemplateInfo();
+    };
+  }, [id]);
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-sm mt-8">
@@ -72,7 +125,9 @@ const EmailTemplateEditor: React.FC = () => {
           <button onClick={() => navigate('/templates')} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md">
             Cancel
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          onClick={() => handleFormSubmit()}
+          >
             Save Template
           </button>
         </div>

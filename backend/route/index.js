@@ -3,9 +3,11 @@ const router = express.Router();
 const hrManagementRoute = require('./hrManagement.js');
 const emailJobRoute = require('./emailJobs.js');
 const authRoute = require('./auth.js');
+const templateConfigRoute = require('./templateConfig.js');
 
 router.use('/hr/management', hrManagementRoute);
 router.use('/emailjob', emailJobRoute);
 router.use('/auth', authRoute);
+router.use('/template/config', templateConfigRoute);
 
 module.exports = router;

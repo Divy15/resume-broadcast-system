@@ -63,12 +63,14 @@ async function login_user_data( req, res, next ){
 }
 
 async function create_jwt_token(userData){
+    const secreatKey = config.get("APP.JSWTSECRET.KEY");
+
     const data = {
         username : userData.username,
         id: userData.id
     };
 
-    return jwt.sign(data, 'Divy',  {expiresIn: 3600});
+    return jwt.sign(data, secreatKey,  {expiresIn: 3600});
 };
 
 module.exports = {

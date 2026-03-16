@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { Plus, Edit2, Search } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Plus, Edit2, Search, Delete } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { deleteTemplate, getFilterTemplateList, getTemplateList } from './EmailTemplateList.service';
 
 export interface EmailTemplate {
-  id: string;
-  name: string;
-  subject: string;
-  body: string;
-  lastEdited: string;
+  id: number;
+  template_name: string;
+  updated_at: string;
 };
 
 const EmailTemplateListPage: React.FC = () => {
@@ -15,14 +14,47 @@ const EmailTemplateListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Mock Data - In a real app, this comes from an API
-  const [templates] = useState<EmailTemplate[]>([
-    { id: '1', name: 'Software Engineer Referral', subject: 'Referral for {{position_name}}', body: '...', lastEdited: '2026-03-08' },
-    { id: '2', name: 'Follow Up', subject: 'Checking in - {{company_name}}', body: '...', lastEdited: '2026-03-09' },
-  ]);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
 
-  const filteredTemplates = templates.filter(t => 
-    t.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    const handleDeleteTemplate = async(templateid: number) => {
+    const response = await deleteTemplate({templateid: templateid});
+
+    console.log("template is deleted.", response);
+    if(response?.success){
+      setTemplates((prevTemplates) =>
+      prevTemplates.filter((template) => template.id !== templateid)
+    );
+    }
+  };
+
+  useEffect(() => {
+  const fetchTemplates = async () => {
+    try {
+      let response;
+      
+      if (searchTerm.trim() === '') {
+        // If search is empty, get the full list
+        response = await getTemplateList();
+      } else {
+        // If there is a search term, get the filtered list
+        response = await getFilterTemplateList({ template_name: searchTerm });
+      }
+
+      setTemplates(response?.data || []);
+    } catch (error) {
+      console.error("Failed to fetch templates:", error);
+      setTemplates([]);
+    }
+  };
+
+  // Debounce logic: Wait for the user to stop typing (300ms) 
+  // before calling the API to save server resources
+  const delayDebounceFn = setTimeout(() => {
+    fetchTemplates();
+  }, 300);
+
+  return () => clearTimeout(delayDebounceFn);
+}, [searchTerm]); // This handles both initial mount and typing
 
   return (
     <div className="bg-gray-50 p-6 md:p-12">
@@ -62,11 +94,11 @@ const EmailTemplateListPage: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filteredTemplates.map((template) => (
+            {templates?.length > 0 ?( templates.map((template, index) => (
               <tr key={template.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-400 font-mono">#{template.id}</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-800">{template.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{template.lastEdited}</td>
+                <td className="px-6 py-4 text-sm text-gray-400 font-mono">#{index + 1}</td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-800">{template.template_name}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{template.updated_at?.split("T")[0]}</td>
                 <td className="px-6 py-4 text-right">
                   <button 
                     onClick={() => navigate(`/templates/edit/${template.id}`)}
@@ -74,9 +106,21 @@ const EmailTemplateListPage: React.FC = () => {
                   >
                     <Edit2 size={16} />
                   </button>
+                  <button 
+                    onClick={() => handleDeleteTemplate(template.id)}
+                    className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50"
+                  >
+                    <Delete size={16} />
+                  </button>
                 </td>
               </tr>
-            ))}
+            ))) : (
+              <tr>
+              <td colSpan={5} className="px-6 py-10 text-center text-slate-500 italic">
+                No Template information found.
+              </td>
+            </tr>
+            )}
           </tbody>
         </table>
       </div>

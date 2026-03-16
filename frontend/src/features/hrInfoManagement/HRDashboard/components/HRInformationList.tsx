@@ -1,7 +1,6 @@
 import {type HRInforListProps} from "../types/dashboard.types"
 
 export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRInforListProps) => {
-
   // Toggle individual checkbox
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) =>
@@ -81,7 +80,8 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
                   )}
                 </td>
                 <td className="px-6 py-4 flex justify-end">
-                  <button className="border rounded-full p-3 w-25 mx-2 hover:bg-green-300">Send</button>
+                  <button className="border rounded-full p-3 w-25 mx-2 hover:bg-green-300"
+                  onClick={() => toggleSelect(item.id)}>Send</button>
                 </td>
               </tr>
             ))

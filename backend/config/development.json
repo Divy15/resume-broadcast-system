@@ -18,6 +18,9 @@
         },
         "BCRYPT":{
             "SALTROUND": 10
+        },
+        "JSWTSECRET":{
+            "KEY": "Divy1511"
         }
     }
 }

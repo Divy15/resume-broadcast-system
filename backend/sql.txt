@@ -33,16 +33,20 @@ CREATE TABLE IF NOT EXISTS public.position_master
 CREATE TABLE IF NOT EXISTS public.template_master
 (
     id serial primary key,
+	userid integer,
     template_name character varying,
     subject_title character varying COLLATE pg_catalog."default",
     body character varying COLLATE pg_catalog."default",
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+	updated_at timestamp default CURRENT_TIMESTAMP,
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
 )
 
+
 ------------------------------------------------------------
-insert into template_master (subject_title, body, template_name)
+insert into template_master ( userid ,subject_title, body, template_name)
 values
 (
+1,
 'Application for {{position_name}} Position at {{company_name}}',
 'Dear {{hr_name}},
 
@@ -64,6 +68,7 @@ Best regards,
 'Backend Application Template'
 ),
 (
+1,
 'Application for {{position_name}} Role at {{company_name}}',
 'Dear {{hr_name}},
 
@@ -226,23 +231,28 @@ END;
 $BODY$;
 
 ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION hrmanagement_get_template_list()
-RETURNS TABLE(id integer, template_name character varying)
-LANGUAGE plpgsql
-SECURITY DEFINER PARALLEL UNSAFE
+CREATE OR REPLACE FUNCTION public.hrmanagement_get_template_list(
+	in_userid integer
+	)
+    RETURNS TABLE(id integer, template_name character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
 
-AS $$
+AS $BODY$
 BEGIN
 
--- select * from hrmanagement_get_template_list()
+-- select * from hrmanagement_get_template_list(5)
 
 RETURN QUERY(
 	SELECT tm.id, tm.template_name
 	FROM template_master tm
+	where tm.userid = in_userid
 );
 
 END;
-$$;
+$BODY$;
 
 ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION hrmanagement_get_selected_ht_info(data jsonb)
@@ -670,5 +680,190 @@ where um.email = in_email;
 
 END;
 $$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.template_config_store_template(
+	in_userid integer,
+	in_template_name character varying,
+	in_template_subject character varying,
+	in_template_body character varying)
+    RETURNS void
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	out_template_id integer;
+BEGIN
+
+INSERT INTO template_master(userid, template_name, subject_title, body)
+VALUES (in_userid, in_template_name, in_template_subject, in_template_body)
+RETURNING id into out_template_id;
+
+END;
+$BODY$;
+
+------------------------------------------------------------
+create table template_updation_log(
+id serial primary key,
+template_id integer,
+template_name character varying,
+template_subject character varying,
+template_body character varying,
+updated_at timestamp default current_timestamp
+)
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.template_master_get_template_filter_list(
+	in_userid integer,
+	in_template_name character varying)
+    RETURNS TABLE(id integer, template_name character varying, updated_at timestamp without time zone) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+BEGIN
+
+-- select * from template_master_get_template_filter_list(5, 'B')
+
+RETURN QUERY
+  select t.id,
+  t.template_name,
+  t.updated_at
+  from template_master t
+  where t.userid = in_userid and t.template_name ilike '%' || in_template_name || '%';
+
+END;
+$BODY$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.template_master_get_template_list(
+	in_userid integer)
+    RETURNS TABLE(id integer, template_name character varying, updated_at timestamp without time zone) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+BEGIN
+
+-- select * from template_master_get_template_list(5)
+
+RETURN QUERY
+  select t.id,
+  t.template_name,
+  t.updated_at
+  from template_master t
+  where t.userid = in_userid ;
+
+END;
+$BODY$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION template_config_get_template_info(in_templateid integer)
+RETURNS TABLE(id integer, template_name character varying, subject_title character varying, body character varying, updated_at timestamp without time zone) 
+LANGUAGE 'plpgsql'
+SECURITY DEFINER PARALLEL UNSAFE
+
+AS $$
+BEGIN
+
+RETURN QUERY
+  select t.id,
+  t.template_name,
+  t.subject_title,
+  t.body,
+  t.updated_at
+  from template_master t
+  where t.id = in_templateid ;
+
+END;
+$$;
+
+------------------------------------------------------------
+create table template_deletion_log(
+id serial primary key,
+template_id integer,
+created_at timestamp default current_timestamp
+);
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION template_config_delete_template(in_templateid integer)
+RETURNS VOID
+LANGUAGE 'plpgsql'
+SECURITY DEFINER PARALLEL UNSAFE
+
+AS $$
+BEGIN
+
+	insert into template_deletion_log(template_id)
+	values (in_templateid);
+
+	delete from template_master
+	where id = in_templateid;
+
+END;
+$$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION template_config_update_template_info(
+    in_templateid integer,
+    in_template_subject varchar,
+    in_template_name varchar,
+    in_template_body varchar
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+
+    -- Store old template data in log table
+    INSERT INTO template_updation_log(
+        template_id,
+        template_name,
+        template_subject,
+        template_body
+    )
+    SELECT 
+        id,
+        template_name,
+        subject_title,
+        body
+    FROM template_master
+    WHERE id = in_templateid;
+
+    -- Update subject
+    IF in_template_subject IS NOT NULL THEN
+        UPDATE template_master
+        SET subject_title = in_template_subject
+        WHERE id = in_templateid;
+    END IF;
+
+    -- Update name
+    IF in_template_name IS NOT NULL THEN
+        UPDATE template_master
+        SET template_name = in_template_name
+        WHERE id = in_templateid;
+    END IF;
+
+    -- Update body
+    IF in_template_body IS NOT NULL THEN
+        UPDATE template_master
+        SET body = in_template_body
+        WHERE id = in_templateid;
+    END IF;
+
+END;
+$$;
+
+------------------------------------------------------------
+
+------------------------------------------------------------
+
+------------------------------------------------------------
 
 ------------------------------------------------------------

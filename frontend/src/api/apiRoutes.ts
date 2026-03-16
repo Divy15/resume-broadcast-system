@@ -19,5 +19,14 @@ export const ApiRoutes = {
         "storeUserData": "/auth/store/user/data",
         "loginUserData": "/auth/login/user/data"
     },
+
+    "templateConfig":{
+        "storeTemplateConfig": "/template/config/store/template",
+        "filterTemplateList": "/template/config/filtered/list",
+        "templateList" : "/template/config/list",
+        "getTemplateInfo": "/template/config/template/info",
+        "deleteTemplate": "/template/config/delete/template",
+        "updateTemplate": "/template/config/update/template/info"
+    }
     
 };

@@ -60,8 +60,9 @@ async function getHRInfoList(req,res,next){
 
 // get template list
 async function getTemplateList(req,res,next){
+    const {id} = req.user;
     try {
-        const response = await pgClient('select * from hrmanagement_get_template_list()', []);
+        const response = await pgClient('select * from hrmanagement_get_template_list($1)', [id]);
 
         if(response.rows.length === 0){
             return res.status(204).send({success : true, message : 'No template found.'});
