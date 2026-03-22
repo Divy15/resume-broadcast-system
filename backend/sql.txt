@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.application_history
 CREATE TABLE IF NOT EXISTS public.hr_info
 (
     id serial primary key,
+    user_id integer,
     company_name character varying COLLATE pg_catalog."default",
     hr_name character varying COLLATE pg_catalog."default",
     email character varying COLLATE pg_catalog."default",
@@ -90,38 +91,44 @@ values
 ('Full Stack Developer');
 
 ------------------------------------------------------------
-create or replace function hrmanagement_dashboard_summary()
-returns table(total_company bigint, total_hr bigint)
-language plpgsql
-security definer
-parallel unsafe
-as $body$
+CREATE OR REPLACE FUNCTION public.hrmanagement_dashboard_summary(
+	in_userid integer
+	)
+    RETURNS TABLE(total_company bigint, total_hr bigint) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 begin
 
 -- Test function
--- select * from hrmanagement_dashboard_summary()
+-- select * from hrmanagement_dashboard_summary(1)
     return query
     select 
         count(distinct company_name) as total_company,
         count(*) as total_hr
-    from hr_info;
+    from hr_info
+	where user_id = in_userid;
 end;
-$body$;
+$BODY$;
 
 ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION hrmanagement_store_hr_info(
-    in_companyname varchar,
-    in_companywebsite varchar,
-    in_hrname varchar,
-    in_hremail varchar,
-    in_hrmobile varchar,
-    in_positionname varchar
-)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
+CREATE OR REPLACE FUNCTION public.hrmanagement_store_hr_info(
+	in_userid integer,
+	in_companyname character varying,
+	in_companywebsite character varying,
+	in_hrname character varying,
+	in_hremail character varying,
+	in_hrmobile character varying,
+	in_positionname character varying)
+    RETURNS void
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    SET search_path=public
+AS $BODY$
 DECLARE
     var_position_id integer;
 BEGIN
@@ -133,6 +140,7 @@ BEGIN
     RETURNING id INTO var_position_id;
 
     INSERT INTO hr_info(
+		user_id,
         company_name,
         hr_name,
         email,
@@ -141,6 +149,7 @@ BEGIN
         position_id
     )
     VALUES (
+		in_userid,
         in_companyname,
         in_hrname,
         in_hremail,
@@ -150,7 +159,7 @@ BEGIN
     );
 
 END;
-$$;
+$BODY$;
 
 ------------------------------------------------------------
 ALTER TABLE position_master
@@ -186,6 +195,7 @@ $BODY$;
 
 ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.hrmanagement_get_hr_info_list(
+	in_userid integer,
 	in_searchterm character varying,
 	in_filtername character varying)
     RETURNS TABLE(id integer, company_name character varying, hr_name character varying, position_name character varying, is_applied boolean, is_verified boolean) 
@@ -208,6 +218,8 @@ BEGIN
 	from hr_info hr
 	join position_master pm on pm.id = hr.position_id
 	WHERE 1 = 1';
+
+	SQL := SQL || ' AND user_id = ' || in_userid;
 
 	IF in_searchterm IS NOT NULL THEN
 	SQL := SQL || ' AND (hr.company_name ilike ' || quote_literal(in_searchterm || '%') || ' OR hr.hr_name ilike ' ||
@@ -255,20 +267,19 @@ END;
 $BODY$;
 
 ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION hrmanagement_get_selected_ht_info(data jsonb)
-RETURNS TABLE(
-    id integer,
-    company_name character varying,
-    hr_name character varying,
-    email character varying
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-PARALLEL UNSAFE
-AS $$
+CREATE OR REPLACE FUNCTION public.hrmanagement_get_selected_ht_info(
+	data jsonb,
+	in_userid integer)
+    RETURNS TABLE(id integer, company_name character varying, hr_name character varying, email character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 BEGIN
 
--- select * from hrmanagement_get_selected_ht_info('[1,2]'::jsonb)
+-- select * from hrmanagement_get_selected_ht_info('[1,2]'::jsonb ,1)
 
     RETURN QUERY
     SELECT 
@@ -280,9 +291,9 @@ BEGIN
     WHERE hi.id IN (
         SELECT value::int
         FROM jsonb_array_elements_text(data)
-    );
+    ) AND user_id = in_userid;
 END;
-$$;
+$BODY$;
 
 ------------------------------------------------------------
 create table user_resume(
@@ -324,18 +335,19 @@ CREATE TABLE event_master (
 INSERT INTO event_master (event_type) VALUES ('BULK_EMAIL'), ('SINGLE_EMAIL');
 
 ------------------------------------------------------------
-CREATE TABLE email_campaigns (
-    campaign_id SERIAL PRIMARY KEY,
-    event_id INTEGER REFERENCES event_master(event_id),
-    position_name character varying,
-    template_id INTEGER,
-    resume_path character varying,
-    selected_hr_ids jsonb, -- Array of IDs
-    total_count INTEGER,
-    sent_count INTEGER DEFAULT 0,
-    status character varying DEFAULT 'PROCESSING', -- 'PROCESSING', 'COMPLETED', 'FAILED'
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE IF NOT EXISTS public.email_campaigns
+(
+    campaign_id serial primary key,
+    user_id integer,
+    position_name character varying COLLATE pg_catalog."default",
+    template_id integer,
+    resume_path character varying COLLATE pg_catalog."default",
+    selected_hr_ids jsonb,
+    total_count integer,
+    sent_count integer DEFAULT 0,
+    status character varying COLLATE pg_catalog."default" DEFAULT 'PROCESSING'::character varying,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+)
 
 ------------------------------------------------------------
 CREATE TABLE notifications (
@@ -348,7 +360,7 @@ CREATE TABLE notifications (
 
 ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.hrmanagement_store_bulk_template_info(
-	in_eventid integer,
+	in_userid integer,
 	in_positionname character varying,
 	in_templateid integer,
 	in_resumepath character varying,
@@ -368,7 +380,7 @@ BEGIN
 
     -- 1️⃣ Insert campaign and capture ID
     INSERT INTO email_campaigns (
-        event_id,
+		user_id,
         position_name,
         template_id,
         resume_path,
@@ -377,7 +389,7 @@ BEGIN
         status
     )
     VALUES (
-        in_eventid,
+		in_userid,
         in_positionname,
         in_templateid,
         in_resumepath,
@@ -396,7 +408,7 @@ BEGIN
     )
     VALUES (
         v_campaign_id,
-        'Start Bulk Email Send.',
+        'Start Email Send.',
         false
     )
     RETURNING notifications.notification_id
@@ -559,32 +571,26 @@ END;
 $$;
 
 ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION email_jobs_get_jobs_list()
-RETURNS TABLE(
-	jobid integer,
-	job_status varchar,
-	job_event varchar,
-	created text
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
+CREATE OR REPLACE FUNCTION public.email_jobs_get_jobs_list(
+	)
+    RETURNS TABLE(jobid integer, job_status character varying, created text) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
 
--- select * from email_jobs_get_jobs_list()
+AS $BODY$
+BEGIN
 
 RETURN QUERY
 SELECT 
 	ec.campaign_id AS jobid,
 	ec.status AS job_status,
-	em.event_type AS job_event,
 	to_char(ec.created_at, 'DD/MM/YYYY') AS created
-FROM email_campaigns ec
-JOIN event_master em 
-	ON em.event_id = ec.event_id;
+FROM email_campaigns ec;
 
 END;
-$$;
+$BODY$;
 
 ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION email_campaign_get_hr_list(
@@ -616,15 +622,18 @@ WHERE ec.campaign_id = in_campaign_id;
 $$;
 
 ------------------------------------------------------------
-create table user_master(
-id serial primary key,
-username character varying,
-email character varying,
-password character varying,
-country character varying,
-dob date,
-created_at timestamp default current_timestamp
-);
+CREATE TABLE user_master
+(
+    id serial primary key,
+    username character varying ,
+    email character varying ,
+    password character varying ,
+    country character varying ,
+    dob date,
+    app_email character varying,
+    app_password character varying,
+    created_at timestamp  DEFAULT CURRENT_TIMESTAMP,
+)
 
 ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION store_signup_user_data(
@@ -861,9 +870,69 @@ END;
 $$;
 
 ------------------------------------------------------------
+CREATE OR REPLACE FUNCTION hrmanagement_get_user_app_password_config(
+in_userid integer
+)
+RETURNS TABLE(app_email character varying, app_password character varying)
+LANGUAGE 'plpgsql'
+SECURITY DEFINER PARALLEL UNSAFE
+
+AS $$
+BEGIN
+
+-- for test
+-- select * from hrmanagement_get_user_app_password_config(1)
+
+RETURN QUERY(
+	select u.app_email, u.app_password
+	from user_master u
+	where u.id = in_userid
+);
+
+END;
+$$;
 
 ------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.app_pass_config_get_app_password_config(
+	in_userid integer)
+    RETURNS TABLE(userid integer, app_email character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL SAFE 
+    ROWS 1000
+
+AS $BODY$
+BEGIN
+
+-- select * from get_app_password_config(1)
+
+RETURN QUERY(
+	select u.id as userid, u.app_email
+	from user_master u
+	where u.id = in_userid
+);
+
+END;
+$BODY$;
 
 ------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.app_pass_config_store_user_application_password(
+	in_userid integer,
+	in_app_email character varying,
+	in_app_pass character varying)
+    RETURNS void
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+
+update user_master 
+set app_email = in_app_email,
+app_password = in_app_pass
+where id = in_userid;
+
+END;
+$BODY$;
 
 ------------------------------------------------------------

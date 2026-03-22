@@ -7,21 +7,24 @@ const googleEmailId = config.get("APP.EMAIL.USER");
 const googlePass = config.get("APP.EMAIL.PASS");
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: googleEmailId,
-    pass: googlePass,
-  },
-});
+let transporter = null
 
 const worker = new Worker(
   "bulk-email",
   async (job) => {
     console.log("Processing job:", job.data);
 
-    const { campaignId, hrIds, templateId, resumePath } = job.data;
+    const { app_email, app_pass, campaignId, hrIds, templateId, resumePath } = job.data;
     let sendCount = 1;
+    console.log(app_email, app_pass);
+
+     transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: app_email,
+    pass: app_pass,
+  },
+});
 
     // 🔥 Send emails here
     for (const hrId of hrIds) {
@@ -110,12 +113,12 @@ async function sendDynamicEmail(dbData, filePath) {
     to: "gandhidivy51@gmail.com", // sendDynamicEmail
     subject: finalSubject,
     text: finalBody,
-    attachments: [
-      {
-        filename: filePath.split("/").pop(),
-        path: `/home/adminpc/Documents/bulk_hr_email_notification/backend${filePath}`,
-      },
-    ],
+    // attachments: [
+    //   {
+    //     filename: filePath.split("/").pop(),
+    //     path: `/home/adminpc/Documents/bulk_hr_email_notification/backend${filePath}`,
+    //   },
+    // ],
   };
 
   // /home/adminpc/Documents/bulk_hr_email_notification/backend/uploads/SSC Hall Ticket Distribution List_86-0168.pdf

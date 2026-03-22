@@ -21,6 +21,11 @@
         },
         "JSWTSECRET":{
             "KEY": "APP_JWT_SECRET_KEY"
+        },
+        "CRYPTO":{
+            "ALGO": "CRYPTO_ALGORITH",
+            "IV_LENGTH": 16,
+            "KEY": "ENTER_THE_ENCRYPT_KEY"
         }
     }
 }

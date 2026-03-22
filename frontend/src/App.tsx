@@ -20,7 +20,7 @@ function App() {
         <LoaderProvider>
           <BrowserRouter>
             <Navbar />
-            <main className="min-h-auto bg-gray-50 mt-9 p-5">
+            <main className=" bg-gray-50 mt-9 p-5">
               <Routes>
                 <Route path="/hr/manager" element={<HRDashboardPage />} />
                 <Route path="/hr/add" element={<HRInfoFormPage />} />

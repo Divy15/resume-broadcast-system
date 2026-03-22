@@ -1,26 +1,31 @@
 {
     "APP": {
         "PORT": "3000",
-        "DB" : {
-            "USER" : "postgres",
-            "PORT" : "5432",
-            "PASSWORD" : "divy",
-            "HOST" : "localhost",
-            "DATABASE" : "resume_application_tracker"
+        "DB": {
+            "USER": "postgres",
+            "PORT": "5432",
+            "PASSWORD": "divy",
+            "HOST": "localhost",
+            "DATABASE": "resume_application_tracker"
         },
         "REDIS": {
-            "HOST" : "localhost",
-            "PORT" : 6379
+            "HOST": "localhost",
+            "PORT": 6379
         },
-        "EMAIL":{
+        "EMAIL": {
             "USER": "gandhidivy1511@gmail.com",
             "PASS": "buwc mcaw xdey pgcp"
         },
-        "BCRYPT":{
+        "BCRYPT": {
             "SALTROUND": 10
         },
-        "JSWTSECRET":{
+        "JSWTSECRET": {
             "KEY": "Divy1511"
+        },
+        "CRYPTO": {
+            "ALGO": "aes-256-gcm",
+            "IV_LENGTH": 12,
+            "KEY": "979e0521ddc2323830688f92770abf30fc7d52f07972fd713fabdf74edff253c"
         }
     }
 }

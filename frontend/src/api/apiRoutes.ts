@@ -27,6 +27,11 @@ export const ApiRoutes = {
         "getTemplateInfo": "/template/config/template/info",
         "deleteTemplate": "/template/config/delete/template",
         "updateTemplate": "/template/config/update/template/info"
+    },
+
+    "appPasswordConfig": {
+        "storeConfig": "/app/password/store/app/password/config",
+        "getConfig": "/app/password/get/app/config"
     }
     
 };
