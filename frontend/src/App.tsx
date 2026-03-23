@@ -12,6 +12,8 @@ import Signup from "./features/signup/Signup.page";
 import Home from "./features/home/Home.page";
 import AppPasswordPage from "./features/appPassword/AppPassword.page";
 import { LoaderProvider } from "./context/LoaderContext";
+import { ProtectedRoute } from "./features/CommonComponent/ProtectedRoute";
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
@@ -20,30 +22,90 @@ function App() {
         <LoaderProvider>
           <BrowserRouter>
             <Navbar />
+            <Toaster position="top-right"  />
             <main className=" bg-gray-50 mt-9 p-5">
               <Routes>
-                <Route path="/hr/manager" element={<HRDashboardPage />} />
-                <Route path="/hr/add" element={<HRInfoFormPage />} />
+                {/* Public routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+
+                {/* Root redirect - triggers auth check */}
+                <Route
+                  path="/redirect"
+                  element={
+                    <ProtectedRoute>
+                      <></>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* ✅ Protected routes - all wrapped */}
+                <Route
+                  path="/hr/manager"
+                  element={
+                    <ProtectedRoute>
+                      <HRDashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/hr/add"
+                  element={
+                    <ProtectedRoute>
+                      <HRInfoFormPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/template/selection"
-                  element={<TemplateSelection />}
+                  element={
+                    <ProtectedRoute>
+                      <TemplateSelection />
+                    </ProtectedRoute>
+                  }
                 />
-                <Route path="/email/jobs" element={<EmailJobs />} />
-
-                <Route path="/templates" element={<EmailTemplateListPage />} />
+                <Route
+                  path="/email/jobs"
+                  element={
+                    <ProtectedRoute>
+                      <EmailJobs />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/templates"
+                  element={
+                    <ProtectedRoute>
+                      <EmailTemplateListPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/templates/new"
-                  element={<EmailTemplateEditor />}
+                  element={
+                    <ProtectedRoute>
+                      <EmailTemplateEditor />
+                    </ProtectedRoute>
+                  }
                 />
                 <Route
                   path="/templates/edit/:id"
-                  element={<EmailTemplateEditor />}
+                  element={
+                    <ProtectedRoute>
+                      <EmailTemplateEditor />
+                    </ProtectedRoute>
+                  }
                 />
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/home" element={<Home />} />
-                <Route path="/email/config" element={<AppPasswordPage />} />
+                <Route
+                  path="/email/config"
+                  element={
+                    <ProtectedRoute>
+                      <AppPasswordPage />
+                    </ProtectedRoute>
+                  }
+                />
               </Routes>
             </main>
           </BrowserRouter>

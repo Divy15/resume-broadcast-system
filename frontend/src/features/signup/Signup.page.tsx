@@ -3,9 +3,12 @@ import { User, Mail, Lock, Globe, Calendar, UserPlus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { FormDataState } from "./types";
 import { storeUserData } from "./Signup.service";
+import toast from "react-hot-toast";
+import { useLoader } from "../../context/LoaderContext";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
+  const {showLoader, hideLoader} = useLoader();
   const [formData, setFormData] = useState<FormDataState>({
     name: "",
     email: "",
@@ -15,23 +18,37 @@ const Signup: React.FC = () => {
     dob: "",
   });
 
-  const handleSubmit = async(e: any) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
+  const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // ✅ Frontend validation before API call
+        if (formData.password !== formData.confirmPassword) {
+            toast.error("Passwords do not match!");
+            return;
+        }
+
+        if (formData.password.length < 6) {
+            toast.error("Password must be at least 6 characters.");
+            return;
+        }
+
+        showLoader();
+
+        try {
+            const response = await storeUserData(formData);
+
+            if (response?.success) {
+                toast.success("Account created! Please log in.");
+                navigate("/login");
+            }
+
+        } catch (error: any) {
+            // ✅ Show exact error message from backend
+            toast.error(error.message || "Signup failed. Please try again.");
+        } finally {
+            hideLoader();
+        }
     };
-
-    const fetchResponse = await storeUserData(formData);
-
-    console.log("fetchResponse", fetchResponse);
-
-    if(fetchResponse?.success){
-      navigate("/login");
-    };
-    // After successful API call:
-    // navigate("/login");
-  };
 
   return (
     <div className="min-h-screen py-12 flex items-center justify-center bg-gray-50 px-4">

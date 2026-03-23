@@ -20,7 +20,10 @@ async function store_signup_user_data( req, res, next ){
 
         await pgClient('select * from store_signup_user_data($1, $2, $3, $4, $5)', [ name, email, hashPassword, country, formattedDob ]);
 
-        return res.send({success : true, message: "User stored successfully."});
+        return res.status(201).json({ 
+            success: true, 
+            message: "Account created successfully." 
+        });
         
     } catch (error) {
         console.log("Error from signup page:", error);
@@ -35,17 +38,23 @@ async function login_user_data( req, res, next ){
         const response = await pgClient('select * from get_user_data_by_email($1)', [email]);
 
         // Check to get user Data 
-        if(response.rows.length <= 0){
-            throw new Error("Invalid user email and password.");
-        };
+        if (response.rows.length <= 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No account found with this email address.'
+            });
+        }
 
         const userData = response.rows[0];
 
         // Check the Password 
         const isPasswordMatch = await bcrypt.compare(password, userData.password);
 
-        if(!isPasswordMatch){
-            throw new Error("Password is not match please re-entered email.")
+        if (!isPasswordMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Incorrect password. Please try again.'
+            });
         }
 
         const token = await create_jwt_token(userData);
@@ -73,7 +82,21 @@ async function create_jwt_token(userData){
     return jwt.sign(data, secreatKey,  {expiresIn: 3600});
 };
 
+async function auth_user_fronted_redirection(req, res, next){
+    try {
+        const {id} = req.user;
+
+        const response = await pgClient("select * from get_user_fronted_redirection($1)", [id]);
+        console.log(response.rows);
+
+        return res.send({success: true, data: response.rows});
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     store_signup_user_data,
-    login_user_data
+    login_user_data,
+    auth_user_fronted_redirection
 }

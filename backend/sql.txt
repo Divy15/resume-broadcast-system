@@ -667,16 +667,25 @@ END;
 $$;
 
 ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION get_user_data_by_email(
-in_email character varying
-)
-RETURNS TABLE(id integer, username character varying, email character varying, password character varying)
-LANGUAGE plpgsql
-SECURITY DEFINER PARALLEL UNSAFE
-AS $$
+CREATE OR REPLACE FUNCTION public.get_user_data_by_email(
+	in_email character varying)
+    RETURNS TABLE(id integer, username character varying, email character varying, password character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
 BEGIN
 
 -- select * from get_user_data_by_email('D@gmail.com')
+
+IF NOT EXISTS (
+        SELECT 1 FROM user_master WHERE user_master.email = in_email
+    ) THEN
+        RAISE EXCEPTION 'No account found with this email address.'
+        USING ERRCODE = '22222';
+    END IF;
 
 RETURN QUERY
 select 
@@ -688,7 +697,7 @@ from user_master um
 where um.email = in_email;
 
 END;
-$$;
+$BODY$;
 
 ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.template_config_store_template(
@@ -934,5 +943,38 @@ where id = in_userid;
 
 END;
 $BODY$;
+
+------------------------------------------------------------
+CREATE OR REPLACE FUNCTION get_user_fronted_redirection(
+    in_userid INTEGER
+)
+RETURNS TABLE(is_app_pass_set BOOLEAN, is_template_set BOOLEAN)
+LANGUAGE plpgsql
+SECURITY DEFINER PARALLEL SAFE
+AS $$
+BEGIN
+
+-- For test
+-- select * from get_user_fronted_redirection(2)
+    RETURN QUERY
+    SELECT
+        -- TRUE only if both app_email and app_password are not null
+        (u.app_email IS NOT NULL AND u.app_password IS NOT NULL) AS is_app_pass_set,
+
+        -- TRUE if at least one template is registered for this user
+        EXISTS (
+            SELECT 1 FROM template_master t WHERE t.userid = in_userid
+        ) AS is_template_set
+
+    FROM user_master u
+    WHERE u.id = in_userid;
+END;
+$$;
+
+------------------------------------------------------------
+
+------------------------------------------------------------
+
+------------------------------------------------------------
 
 ------------------------------------------------------------

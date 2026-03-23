@@ -12,7 +12,7 @@ const app = axios.create(confg);
 
 // Attach JWT to every request
 app.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("pitchHRtoken");
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -29,7 +29,7 @@ app.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Token invalid or expired
 
-      localStorage.removeItem("token");
+      localStorage.removeItem("pitchHRtoken");
       localStorage.removeItem("user");
 
       // redirect to login page

@@ -17,7 +17,8 @@ export const ApiRoutes = {
 
     "auth": {
         "storeUserData": "/auth/store/user/data",
-        "loginUserData": "/auth/login/user/data"
+        "loginUserData": "/auth/login/user/data",
+        "authRedirection": "/auth/user/redirection"
     },
 
     "templateConfig":{
