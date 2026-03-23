@@ -13,7 +13,7 @@ async function dashboardCount(req,res,next){
         
         const result = await pgClient('select * from hrmanagement_dashboard_summary($1)', [id]);
 
-        return res.send({success: true, data: result.rows});
+        return res.send({success: true, message: "Dashboard counts fetched successfully.", data: result.rows});
     } catch (error) {
         next(error);
     }
@@ -26,7 +26,7 @@ async function storeHrInfo(req,res,next){
     try {
         await pgClient('select * from hrmanagement_store_hr_info($1, $2, $3, $4, $5, $6, $7)', [id, companyName, companyWebsite, hrName, hrEmail, hrMobile, positionName]);
 
-        return res.send({success : true});
+        return res.send({success : true, message: "HR information stored successfully."});
     } catch (error) {
         console.error('Error storing HR information:', error);
         next(error);
@@ -43,7 +43,7 @@ async function getPostionList(req, res, next){
             return res.status(204).send({success : true, message: 'No postion found.'})
         }
 
-        return res.send({success : true, data : result.rows, messsage : `Found position list which length ${result.rows.length}`});
+        return res.send({success : true, data : result.rows, message : `Found ${result.rows.length} positions.`});
     } catch (error) {
         next(error);
     }
@@ -60,7 +60,7 @@ async function getHRInfoList(req,res,next){
             return res.status(204).send({success : true, message : 'No HR information found.'});
         };
 
-        return res.send({success : true, data : response.rows, message : `HR information found which length ${response.rows.length} `});
+        return res.send({success : true, data : response.rows, message : `Found ${response.rows.length} HR records.`});
     } catch (error) {
         next(error);
     }
@@ -76,7 +76,7 @@ async function getTemplateList(req,res,next){
             return res.status(204).send({success : true, message : 'No template found.'});
         };
 
-        return res.send({success : true, data : response.rows, message : `Template list found which length ${response.rows.length} `});
+        return res.send({success : true, data : response.rows, message : `Found ${response.rows.length} templates.`});
     } catch (error) {
         next(error);
     }
@@ -93,7 +93,7 @@ async function getSelectedHRInfoList(req,res,next){
             return res.status(204).send({success : true, message : 'No HR information found.'});
         };
 
-        return res.send({success : true, data : response.rows, message : `HR information found which length ${response.rows.length} `});
+        return res.send({success : true, data : response.rows, message : `Found ${response.rows.length} selected HR records.`});
     } catch (error) {
         next(error);
     }
@@ -156,7 +156,7 @@ async function storeTemplateSelection(req,res,next){
           },
         });
 
-        return res.send({success : true, data : response.rows});
+        return res.send({success : true, message: "Template selection stored successfully, emails queued.", data : response.rows});
     } catch (error) {
         next(error);
     }

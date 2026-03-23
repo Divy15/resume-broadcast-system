@@ -64,7 +64,7 @@ async function login_user_data( req, res, next ){
         id: userData.id
     };
 
-        return res.send({success: true, token: token, data: data })
+        return res.send({success: true, message: "Login successful.", token: token, data: data })
 
     } catch (error) {
         next(error);
@@ -89,7 +89,7 @@ async function auth_user_fronted_redirection(req, res, next){
         const response = await pgClient("select * from get_user_fronted_redirection($1)", [id]);
         console.log(response.rows);
 
-        return res.send({success: true, data: response.rows});
+        return res.send({success: true, message: "Redirection details fetched successfully.", data: response.rows});
     } catch (error) {
         next(error);
     }

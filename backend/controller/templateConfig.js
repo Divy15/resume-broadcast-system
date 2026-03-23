@@ -7,7 +7,7 @@ async function store_template_info( req, res, next ){
     try {
         await pgClient('select * from template_config_store_template($1, $2, $3, $4)', [ id, name, subject, body ]);
 
-        return res.send({ success: true});
+        return res.send({ success: true, message: "Template info stored successfully."});
     } catch (error) {
         next(error);
     }
@@ -20,7 +20,7 @@ async function get_filter_template_list( req, res, next){
     try {
         const response = await pgClient('select * from template_master_get_template_filter_list($1, $2)', [id, template_name]);
 
-        return res.send({success: true, data: response.rows});
+        return res.send({success: true, message: "Filtered template list fetched successfully.", data: response.rows});
     } catch (error) {
         next(error);
     }
@@ -32,7 +32,7 @@ async function get_template_list( req, res, next){
     try {
         const response = await pgClient('select * from template_master_get_template_list($1)', [id]);
 
-        return res.send({success: true, data: response.rows});
+        return res.send({success: true, message: "Template list fetched successfully.", data: response.rows});
     } catch (error) {
         next(error);
     }
@@ -44,7 +44,7 @@ async function get_template_info(req , res, next){
     try {
         const response = await pgClient('select * from template_config_get_template_info($1)', [templateid]);
 
-        return res.send({success: true, data: response.rows});
+        return res.send({success: true, message: "Template info fetched successfully.", data: response.rows});
     } catch (error) {
         next(error);
     }
@@ -56,7 +56,7 @@ async function delete_template(req, res,next){
     try {
         await pgClient('select * from template_config_delete_template($1)', [templateid]);
 
-        return res.send({success: true});
+        return res.send({success: true, message: "Template deleted successfully."});
     } catch (error) {
         next(error);
     }
@@ -68,7 +68,7 @@ async function update_template_info(req, res, next){
     try {
         await pgClient('select * from template_config_update_template_info($1, $2, $3, $4)', [templateid, template_subject, template_name, template_body]);
 
-        return res.send({success: true});
+        return res.send({success: true, message: "Template info updated successfully."});
     } catch (error) {
         next(error);
     }

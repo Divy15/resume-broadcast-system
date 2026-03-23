@@ -37,7 +37,7 @@ async function get_app_config( req, res, next){
     try {
         const response = await pgClient('select * from app_pass_config_get_app_password_config($1)', [id]);
 
-        return res.send({success: true, data: response.rows});
+        return res.send({success: true, message: "App configuration fetched successfully.", data: response.rows});
     } catch (error) {
         next(error);
     }

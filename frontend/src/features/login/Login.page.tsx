@@ -26,7 +26,7 @@ const Login: React.FC = () => {
         navigate("/hr/manager");
       }
     } catch (error: any) {
-      toast.error(error.message || "Login failed. Please try again.");
+      console.error("Login failed:", error);
     } finally {
       hideLoader();
     }

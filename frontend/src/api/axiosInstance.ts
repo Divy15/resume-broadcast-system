@@ -1,4 +1,5 @@
 import axios, { type AxiosRequestConfig } from 'axios';
+import toast from 'react-hot-toast';
 
 const API_BASE_URL = 'http://localhost:3000/api';
 
@@ -25,6 +26,8 @@ app.interceptors.request.use((config) => {
 app.interceptors.response.use(
   (response) => response,
   (error) => {
+    const message = error.response?.data?.message || error.message || 'An error occurred';
+    toast.error(message);
 
     if (error.response && error.response.status === 401) {
       // Token invalid or expired

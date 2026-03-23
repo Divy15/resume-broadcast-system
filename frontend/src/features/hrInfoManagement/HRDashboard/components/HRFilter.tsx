@@ -59,9 +59,11 @@ export const HRFilterComp: React.FC = () => {
     // We don't want to show the GLOBAL loader for every keystroke (it's annoying)
     // but for the first search, or a manual trigger, you can use it.
     const fetchFilteredList = async () => {
-      const data = { searchTerm, filterName: filter };
-      const response = await HRDashboardService.getHRInformationList(data);
-      setHRInfoList(response?.data || []);
+      try {
+        const data = { searchTerm, filterName: filter };
+        const response = await HRDashboardService.getHRInformationList(data);
+        setHRInfoList(response?.data || []);
+      } catch (error) { console.error(error); }
     };
 
         fetchFilteredList();

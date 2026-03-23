@@ -18,13 +18,17 @@ export const EmailJobs: React.FC = () => {
   useEffect(() => {
 
     const fetchJob = async () => {
-      const response = await getJobList();
-      setJobList(response?.data);
+      try {
+        const response = await getJobList();
+        setJobList(response?.data);
+      } catch (error) { console.error(error); }
     };
 
     const fetchJobInfo = async () => {
-      const response = await getJobInfo({jobid : selectedJob?.jobid});
-      setJobInfo(response?.data);
+      try {
+        const response = await getJobInfo({jobid : selectedJob?.jobid});
+        setJobInfo(response?.data);
+      } catch (error) { console.error(error); }
     };
     
     fetchJob();

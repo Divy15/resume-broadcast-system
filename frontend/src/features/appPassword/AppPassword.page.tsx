@@ -3,6 +3,7 @@ import StepCard from './components/StepCard.component';
 import PasswordForm from './components/PasswordForm.component';
 import ConfigDisplay from './components/ConfigDisplay.component';
 import { getConfig, storeConfig } from './AppPassword.service'; // Import your functions
+import { useAuth } from '../../context/AuthContext';
 
 const steps = [
   { id: 1, title: "Enable 2FA", desc: "Go to Google Security and turn on 2-Step Verification.", link: "https://myaccount.google.com/security" },
@@ -11,6 +12,7 @@ const steps = [
 ];
 
 const AppPasswordPage: React.FC = () => {
+  const { refreshRedirection } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
@@ -49,6 +51,7 @@ const AppPasswordPage: React.FC = () => {
         setIsRegistered(true);
         setIsEditing(false);
         setPassword(''); // Always clear password after success
+        await refreshRedirection();
       }
     } catch (error) {
       console.error("Storage failed", error);

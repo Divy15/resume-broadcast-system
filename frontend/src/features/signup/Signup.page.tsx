@@ -43,8 +43,7 @@ const Signup: React.FC = () => {
             }
 
         } catch (error: any) {
-            // ✅ Show exact error message from backend
-            toast.error(error.message || "Signup failed. Please try again.");
+            console.error("Signup failed:", error);
         } finally {
             hideLoader();
         }

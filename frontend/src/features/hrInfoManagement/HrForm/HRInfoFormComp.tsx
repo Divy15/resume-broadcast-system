@@ -58,10 +58,12 @@ export const HRInfoFormComp: React.FC = () => {
   const handleFormSubmission = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if(validateForm()){
-      const response = await HRFormService.storeHRInfo(formData);
-      if(response?.success){
-        navigate(-1)
-      }
+      try {
+        const response = await HRFormService.storeHRInfo(formData);
+        if(response?.success){
+          navigate(-1)
+        }
+      } catch (error) { console.error(error); }
     }
   };
 
@@ -79,11 +81,13 @@ export const HRInfoFormComp: React.FC = () => {
         return;
       }
 
-      const data = {positionName : formData?.positionName};
-      const response = await HRFormService.positionList(data);
-      if(response?.data){
-        setPositinList(response?.data);
-      };
+      try {
+        const data = {positionName : formData?.positionName};
+        const response = await HRFormService.positionList(data);
+        if(response?.data){
+          setPositinList(response?.data);
+        };
+      } catch (error) { console.error(error) }
     };
 
 

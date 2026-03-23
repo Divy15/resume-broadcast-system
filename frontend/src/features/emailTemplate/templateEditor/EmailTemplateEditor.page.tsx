@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { storeTemplateFormData } from './types';
 import { storeTemplate } from './TemplateConfig.service';
+import toast from 'react-hot-toast';
 import { getTemplateInfo, updateTemplate } from './TemplateConfig.service';
+import { useAuth } from '../../../context/AuthContext';
 
 const DYNAMIC_TAGS = ['{{position_name}}', '{{company_name}}', '{{your_name}}', '{{hr_name}}'];
 
 const EmailTemplateEditor: React.FC = () => {
+  const { refreshRedirection } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -34,17 +37,23 @@ const EmailTemplateEditor: React.FC = () => {
     }
 
     
-    if(!id){
-    const response = await storeTemplate(formData);
-    console.log("Store template result:", response);
-    navigate('/templates');
-    };
+    try {
+      if(!id){
+        const response = await storeTemplate(formData);
+        console.log("Store template result:", response);
+        toast.success(response?.message || "Template stored successfully.");
+        await refreshRedirection();
+        navigate('/templates');
+      };
 
-    if(id){
-      const response = await updateTemplate(data);
-      console.log("update template", response);
-      navigate('/templates');
-    }
+      if(id){
+        const response = await updateTemplate(data);
+        console.log("update template", response);
+        toast.success(response?.message || "Template updated successfully.");
+        await refreshRedirection();
+        navigate('/templates');
+      }
+    } catch (error) { console.error("Template save failed", error); }
   };
 
   useEffect(() => {
@@ -58,14 +67,14 @@ const EmailTemplateEditor: React.FC = () => {
     };
 
     const fetchTemplateInfo = async () => {
-      const response = await getTemplateInfo(data);
-
-
-      setFormData({
-        name: response?.data[0].template_name,
-    subject: response?.data[0].subject_title,
-    body: response?.data[0].body
-      })
+      try {
+        const response = await getTemplateInfo(data);
+        setFormData({
+          name: response?.data[0].template_name,
+      subject: response?.data[0].subject_title,
+      body: response?.data[0].body
+        });
+      } catch (error) { console.error(error); }
     };
 
     if(id){

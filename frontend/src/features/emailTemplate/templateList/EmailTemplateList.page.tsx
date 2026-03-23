@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Search, Delete } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { deleteTemplate, getFilterTemplateList, getTemplateList } from './EmailTemplateList.service';
+import toast from 'react-hot-toast';
 
 export interface EmailTemplate {
   id: number;
@@ -17,14 +18,17 @@ const EmailTemplateListPage: React.FC = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
 
     const handleDeleteTemplate = async(templateid: number) => {
-    const response = await deleteTemplate({templateid: templateid});
+      try {
+        const response = await deleteTemplate({templateid: templateid});
 
-    console.log("template is deleted.", response);
-    if(response?.success){
-      setTemplates((prevTemplates) =>
-      prevTemplates.filter((template) => template.id !== templateid)
-    );
-    }
+        console.log("template is deleted.", response);
+        if(response?.success){
+          toast.success(response.message || "Template deleted successfully.");
+          setTemplates((prevTemplates) =>
+          prevTemplates.filter((template) => template.id !== templateid)
+        );
+        }
+      } catch (error) { console.error("Deletion failed:", error); }
   };
 
   useEffect(() => {

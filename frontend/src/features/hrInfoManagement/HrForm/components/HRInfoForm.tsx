@@ -1,5 +1,6 @@
 import React, { useEffect, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { HRFormService } from "../HRForm.service";
 import {FormField} from "../../../CommonComponent/FormField";
 import {type FormData, type FormErrors, type PositionListResult } from "../types/hrForm.types";
@@ -38,10 +39,13 @@ export const HRInfoFormComp: React.FC = () => {
   const handleFormSubmission = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if(validateForm()){
-      const response = await HRFormService.storeHRInfo(formData);
-      if(response?.success){
-        navigate(-1)
-      }
+      try {
+        const response = await HRFormService.storeHRInfo(formData);
+        if(response?.success){
+          toast.success(response.message || "HR information stored successfully.");
+          navigate(-1)
+        }
+      } catch (error) { console.error(error); }
     }
   };
 
@@ -59,11 +63,13 @@ export const HRInfoFormComp: React.FC = () => {
         return;
       }
 
-      const data = {positionName : formData?.positionName};
-      const response = await HRFormService.positionList(data);
-      if(response?.data){
-        setPositinList(response?.data);
-      };
+      try {
+        const data = {positionName : formData?.positionName};
+        const response = await HRFormService.positionList(data);
+        if(response?.data){
+          setPositinList(response?.data);
+        };
+      } catch (error) { console.error(error); }
     };
 
 

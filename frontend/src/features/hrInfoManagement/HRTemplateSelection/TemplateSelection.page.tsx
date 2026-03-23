@@ -27,9 +27,9 @@ export const TemplateSelection = () => {
 
   // API: Initial Load
   useEffect(() => {
-    getTemplateList().then(res => setTemplates(res?.data || []));
+    getTemplateList().then(res => setTemplates(res?.data || [])).catch(console.error);
     if (selectedIds.length > 0) {
-      getSelectedHRInfoList(selectedIds).then(res => setHrDetails(res?.data || []));
+      getSelectedHRInfoList(selectedIds).then(res => setHrDetails(res?.data || [])).catch(console.error);
     }
   }, []);
 
@@ -37,8 +37,10 @@ export const TemplateSelection = () => {
   useEffect(() => {
     if (!formData.positionName.trim()) return setPositionList([]);
     const timer = setTimeout(async () => {
-      const response = await getPositionList({ positionName: formData.positionName });
-      if (response?.data) setPositionList(response.data);
+      try {
+        const response = await getPositionList({ positionName: formData.positionName });
+        if (response?.data) setPositionList(response.data);
+      } catch (error) { console.error(error); }
     }, 300);
     return () => clearTimeout(timer);
   }, [formData.positionName]);
@@ -81,12 +83,16 @@ export const TemplateSelection = () => {
     }
     finalData.append("hrIds", selectedIds );
 
-    const result = await storeTemplateInfo(finalData);
-    console.log(result);
+    try {
+      const result = await storeTemplateInfo(finalData);
+      console.log(result);
 
-    if(result?.success){
-      navigate('/email/jobs')
-    };
+      if(result?.success){
+        navigate('/email/jobs')
+      };
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

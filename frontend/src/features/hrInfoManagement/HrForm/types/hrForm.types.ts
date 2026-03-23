@@ -18,7 +18,7 @@ export interface PositionListResult {
 };
 
 // Service file
-export interface storeHRInfoProprs {
+export interface storeHRInfoProps {
 companyName: string; 
 companyWebsite: string; 
 hrName: string; 
