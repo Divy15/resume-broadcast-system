@@ -33,6 +33,18 @@ export const ApiRoutes = {
     "appPasswordConfig": {
         "storeConfig": "/app/password/store/app/password/config",
         "getConfig": "/app/password/get/app/config"
+    },
+
+    "dashboardConfig": {
+        "hrRegistrationBarChart": "/dashboard/hr/registration/bar/chart",
+        "companyRegistrationBarChart": "/dashboard/company/registration/bar/chart",
+        "totalCounts": "/dashboard/total/counts"
+    },
+
+    "profile": {
+        "getProfileDetails": "/profile/get/profile/details",
+        "updateProfileDetails": "/profile/update/profile/details",
+        "updateProfilePassword": "/profile/update/profile/password"
     }
     
 };

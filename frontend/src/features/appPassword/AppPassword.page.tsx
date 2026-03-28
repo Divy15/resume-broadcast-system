@@ -63,9 +63,9 @@ const AppPasswordPage: React.FC = () => {
   }
 
   return (
-    <div className="w-full bg-gray-50 min-h-full pt-6 font-sans px-6 pb-12">
+    <div className="w-full min-h-full p-6 font-sans md:p-12">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800">Email SMTP Setup</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Email SMTP Setup</h1>
         <p className="text-slate-500 mt-1 text-sm">Follow the steps to authorize 500 emails/day via Gmail.</p>
       </header>
 

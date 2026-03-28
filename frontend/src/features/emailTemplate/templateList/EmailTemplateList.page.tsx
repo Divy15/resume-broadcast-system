@@ -61,7 +61,7 @@ const EmailTemplateListPage: React.FC = () => {
 }, [searchTerm]); // This handles both initial mount and typing
 
   return (
-    <div className="bg-gray-50 p-6 md:p-12">
+    <div className="p-6 md:p-12">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Email Templates</h1>
         <button 

@@ -71,4 +71,10 @@ router.route('/store/template/selection')
     hrManagementController.storeTemplateSelection
 )
 
+// email tracking open logs store
+router.route('/track/open')
+.post(
+    hrManagementController.email_track_open_logs
+);
+
 module.exports = router;

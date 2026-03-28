@@ -14,6 +14,8 @@ import AppPasswordPage from "./features/appPassword/AppPassword.page";
 import { LoaderProvider } from "./context/LoaderContext";
 import { ProtectedRoute } from "./features/CommonComponent/ProtectedRoute";
 import { Toaster } from 'react-hot-toast';
+import { Dashboard } from "./features/dashboard/Dashboard.page";
+import { Profile } from "./features/profile/Profile.page";
 
 function App() {
   return (
@@ -23,7 +25,7 @@ function App() {
           <BrowserRouter>
             <Navbar />
             <Toaster position="top-right"  />
-            <main className=" bg-gray-50 mt-9 p-5">
+            <main className="min-h-full mt-9">
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Home />} />
@@ -41,7 +43,25 @@ function App() {
                   }
                 />
 
+
+
                 {/* ✅ Protected routes - all wrapped */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/hr/manager"
                   element={

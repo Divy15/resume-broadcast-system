@@ -180,6 +180,23 @@ async function decryptPassword(encryptedPayload) {
     return decrypted;
 } 
 
+async function email_track_open_logs( req, res, next){
+    const { token } = req.query;
+
+  // Always return the pixel immediately — never block the HR's email load
+  res.set('Content-Type', 'image/gif');
+  res.set('Cache-Control', 'no-store, no-cache');
+  res.end(PIXEL);
+
+  // Record the open in background (don't await — fire and forget)
+  if (token) {
+    pgClient(
+      `SELECT * FROM email_campaign_record_open($1, $2)`,
+      [token, new Date()]
+    ).catch(err => console.error('Track open failed:', err));
+  }
+}
+
 module.exports = {
     dashboardCount,
     storeHrInfo,
@@ -187,5 +204,6 @@ module.exports = {
     getHRInfoList,
     getTemplateList,
     getSelectedHRInfoList,
-    storeTemplateSelection
+    storeTemplateSelection,
+    email_track_open_logs
 };

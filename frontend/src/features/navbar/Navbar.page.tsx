@@ -71,7 +71,8 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <>
-                <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full" title="Profile">
+                <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full" title="Profile"
+                onClick={() => navigate('/profile')}>
                   <User size={20} />
                 </button>
                 <button 
@@ -118,7 +119,8 @@ const Navbar: React.FC = () => {
           <div className="border-t border-gray-100 mt-2 pt-2 flex flex-col gap-2">
             {isAuthenticated ? (
               <>
-                <button className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50">
+                <button className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50"
+                onClick={() => navigate('/profile')}>
                   <User size={20} /> Profile Settings
                 </button>
                 <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50">

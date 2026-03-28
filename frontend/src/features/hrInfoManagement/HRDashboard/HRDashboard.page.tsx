@@ -6,7 +6,7 @@ export const HRDashboardPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-gray-50 p-6 md:p-12">
+    <div className="h-full p-6 md:p-12">
       <div>
 
         {/* Header Section */}

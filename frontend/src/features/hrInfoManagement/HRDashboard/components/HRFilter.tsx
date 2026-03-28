@@ -118,7 +118,7 @@ export const HRFilterComp: React.FC = () => {
         )}
 
         {/* This is where your HR Table/List would go */}
-        <div className="bg-white rounded-xl border border-slate-200 flex text-slate-400 italic">
+        <div className="rounded-xl border border-slate-200 flex text-slate-400 italic">
           <HrInformationList 
           dataList = {hrInfoList}
           selectedIds={selectedIds} 

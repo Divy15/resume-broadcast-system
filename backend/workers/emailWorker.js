@@ -41,7 +41,7 @@ const worker = new Worker(
       sendCount++;
 
       try {
-        await sendDynamicEmail(dbData, resumePath);
+        await sendDynamicEmail(dbData, resumePath, campaignId, hrId.hr_id);
 
         // Mark this HR as completed
         await pgClient(
@@ -94,7 +94,7 @@ worker.on("failed", (job, err) => {
   console.error(`Job ${job.id} failed`, err);
 });
 
-async function sendDynamicEmail(dbData, filePath) {
+async function sendDynamicEmail(dbData, filePath, campaignId, hrId) {
   const hrInfo = dbData.find((d) => d.hr_info)?.hr_info;
   const templateInfo = dbData.find((d) => d.template_info)?.template_info;
 
@@ -108,11 +108,31 @@ async function sendDynamicEmail(dbData, filePath) {
   const finalSubject = replaceTemplate(templateInfo.subject_title, dynamicData);
   const finalBody = replaceTemplate(templateInfo.body, dynamicData);
 
+  const tokenRes = await pgClient(
+    'SELECT * FROM email_campaign_get_tracking_token($1, $2)',
+    [campaignId, hrId]
+  );
+  const trackingToken = tokenRes.rows[0]?.email_campaign_get_tracking_token;
+
+  // ─── Build pixel URL ──────────────────────────────────────
+  const BASE_URL    = 'http://192.168.0.163:3000/api/hr/management' || 'https://yourdomain.com';
+  const pixelUrl    = `${BASE_URL}/track/open?token=${trackingToken}`;
+  const trackingPixel = `<img src="${pixelUrl}" width="1" height="1" style="display:none" alt="" />`;
+
+  // ─── Convert plain text body to HTML + append pixel ──────
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6;">
+      ${finalBody.replace(/\n/g, '<br/>')}
+    </div>
+    ${trackingPixel}
+  `;
+
   const mailOptions = {
     from: `"Divy Gandhi" <${googleEmailId}>`,
     to: "gandhidivy51@gmail.com", // sendDynamicEmail
     subject: finalSubject,
     text: finalBody,
+    html: htmlBody,
     // attachments: [
     //   {
     //     filename: filePath.split("/").pop(),
