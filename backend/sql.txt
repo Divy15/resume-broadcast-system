@@ -305,25 +305,26 @@ upload_at timestamp default current_timestamp
 );
 
 ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION hrmanagment_store_resume_info(
-in_usercode integer,
-in_filename character varying,
-in_filepath character varying
-)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER PARALLEL UNSAFE
-
-AS $$
+CREATE OR REPLACE FUNCTION public.hrmanagment_store_resume_info(
+	in_usercode integer,
+	in_filename character varying,
+	in_filepath character varying)
+    RETURNS TABLE(out_id integer)
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE SECURITY DEFINER PARALLEL UNSAFE
+AS $BODY$
 BEGIN
 
 -- select * from hrmanagment_store_resume_info(1, 'abc.pdf', 'xyz/abc.pdf')
 
-INSERT INTO user_resume(usercode, filename, filepath)
-values (in_usercode, in_filename, in_filepath);
+RETURN QUERY
+INSERT INTO user_resume(userid, filename, filepath)
+values (in_usercode, in_filename, in_filepath)
+RETURNING id ;
 
 END;
-$$;
+$BODY$;
 
 ------------------------------------------------------------
 CREATE TABLE event_master (
@@ -363,10 +364,10 @@ CREATE OR REPLACE FUNCTION public.hrmanagement_store_bulk_template_info(
 	in_userid integer,
 	in_positionname character varying,
 	in_templateid integer,
-	in_resumepath character varying,
+	in_resumeid integer,
 	in_selected_hr_ids jsonb,
 	in_totalcount integer)
-    RETURNS TABLE(campaign_id integer, notification_id integer) 
+    RETURNS TABLE(campaign_id integer, notification_id integer, resume_path character varying) 
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE SECURITY DEFINER PARALLEL UNSAFE
@@ -374,49 +375,38 @@ CREATE OR REPLACE FUNCTION public.hrmanagement_store_bulk_template_info(
 
 AS $BODY$
 DECLARE
-    v_campaign_id integer;
-    v_notification_id integer;
+    v_campaign_id     INTEGER;
+    v_notification_id INTEGER;
+    v_hr              JSONB;
+	v_resumepath character varying;
 BEGIN
 
-    -- 1️⃣ Insert campaign and capture ID
+    -- 1. Insert campaign (no more selected_hr_ids column)
     INSERT INTO email_campaigns (
-		user_id,
-        position_name,
-        template_id,
-        resume_path,
-        selected_hr_ids,
-        total_count,
-        status
+        user_id, position_name, template_id, resumeid, status
     )
     VALUES (
-		in_userid,
-        in_positionname,
-        in_templateid,
-        in_resumepath,
-        in_selected_hr_ids,
-        in_totalcount,
-        'PROCESSING'
+        in_userid, in_positionname, in_templateid, in_resumeid, 'PROCESSING'
     )
-    RETURNING email_campaigns.campaign_id
-    INTO v_campaign_id;
+    RETURNING email_campaigns.campaign_id INTO v_campaign_id;
 
-    -- 2️⃣ Insert notification using captured campaign_id
-    INSERT INTO notifications (
-        campaign_id,
-        notification_message,
-        is_read
-    )
-    VALUES (
-        v_campaign_id,
-        'Start Email Send.',
-        false
-    )
-    RETURNING notifications.notification_id
-    INTO v_notification_id;
+    -- 2. Insert one row per HR into application_history
+    FOR v_hr IN SELECT * FROM jsonb_array_elements(in_selected_hr_ids)
+    LOOP
+        INSERT INTO application_history (campaign_id, hr_id, send_status)
+        VALUES (v_campaign_id, (v_hr->>'hr_id')::INT, 'pending');
+    END LOOP;
 
-    -- 3️⃣ Return both values
-    RETURN QUERY
-    SELECT v_campaign_id, v_notification_id;
+    -- 3. Insert notification
+    INSERT INTO notifications (campaign_id, notification_message, is_read)
+    VALUES (v_campaign_id, 'Start Email Send.', false)
+    RETURNING notifications.notification_id INTO v_notification_id;
+
+	-- 4. Get resume path
+	SELECT user_resume.filepath into v_resumepath 
+	from user_resume where user_resume.id = in_resumeid;
+
+    RETURN QUERY SELECT v_campaign_id, v_notification_id, v_resumepath;
 
 END;
 $BODY$;
@@ -972,9 +962,28 @@ END;
 $$;
 
 ------------------------------------------------------------
+CHANGE COLUMN NAME USERCODE TO USERID IN USER_RESUME TABLE
 
 ------------------------------------------------------------
+CREATE OR REPLACE FUNCTION hrmanagement_get_user_resume_list(
+in_userid integer
+)
+RETURNS TABLE(id integer, filename character varying, upload_at timestamp)
+LANGUAGE 'plpgsql'
+SECURITY DEFINER PARALLEL SAFE
 
+AS $$
+BEGIN
+
+-- select * from hrmanagement_get_user_resume_list(1)
+RETURN QUERY
+	SELECT user_resume.id, user_resume.filename, user_resume.upload_at
+	from user_resume
+	where userid = in_userid
+	order by upload_at DESC;
+
+END;
+$$;
 ------------------------------------------------------------
 
 ------------------------------------------------------------

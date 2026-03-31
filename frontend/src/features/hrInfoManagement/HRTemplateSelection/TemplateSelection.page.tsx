@@ -5,6 +5,7 @@ import {
   getSelectedHRInfoList,
   getPositionList,
   storeTemplateInfo,
+  getUserReueList,
 } from "./Template.service";
 import {
   type selectedHRInfoList,
@@ -16,6 +17,7 @@ import { FileUpload } from "./components/FileUpload.component";
 import { PositionField } from "./components/PositionField.component";
 import { RecipientTable } from "./components/RecipientTable.component";
 import { TemplateSelect } from "./components/TemplateSelect.component";
+import { ExistingResumeSelect } from "./components/ExistingResumeSelect.component";
 
 export const TemplateSelection = () => {
   const location = useLocation();
@@ -39,11 +41,20 @@ export const TemplateSelection = () => {
   
   // Resume State
   const [resumeOption, setResumeOption] = useState<"new" | "existing">("new");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
+  const [uploadedFileId, setUploadedFileId] = useState<number | null>(null);
+  const [resumeList, setResumeList] = useState<Array<{id:number, filename:string, upload_at: string}> | []>([]);
   
   // Mock/Fetched existing resumes
-  const resumeList = [{ id: 123, file_name: "John_Doe_CV_2024.pdf" }];
+  useEffect(() => {
+    const fetchResumeList = async () => {
+      const response = await getUserReueList();
+      if(response?.data){
+        setResumeList(response?.data);
+      };
+    };
+    fetchResumeList();
+  }, []);
 
   // --- Effects ---
   useEffect(() => {
@@ -61,6 +72,15 @@ export const TemplateSelection = () => {
     };
     fetchData();
   }, [selectedIds]);
+
+  // When switching tabs, it's safer to clear the "other" selection
+useEffect(() => {
+  if (resumeOption === "new") {
+    setSelectedResumeId(null); // Clear the dropdown choice
+  } else {
+    setUploadedFileId(null);   // Clear the S3 upload choice (optional, but cleaner)
+  }
+}, [resumeOption]);
 
   useEffect(() => {
     if (!formData.positionName.trim()) {
@@ -84,7 +104,7 @@ export const TemplateSelection = () => {
     if (!selectedTemplate) newErrors.template = "Please select an email template.";
     if (!formData.positionName.trim()) newErrors.positionName = "Position name is required.";
     
-    if (resumeOption === "new" && !selectedFile) {
+    if (resumeOption === "new" && !uploadedFileId) {
         newErrors.resume = "Please upload a new resume.";
     } else if (resumeOption === "existing" && !selectedResumeId) {
         newErrors.resume = "Please select an existing resume.";
@@ -99,19 +119,17 @@ export const TemplateSelection = () => {
     if (!validateForm()) return;
 
     setLoading(true);
-    const submissionData = new FormData(); // Native Browser API
-    submissionData.append("position", formData.positionName);
-    submissionData.append("template_id", selectedTemplate);
-    submissionData.append("hrIds", JSON.stringify(selectedIds));
-
-    if (resumeOption === "new" && selectedFile) {
-      submissionData.append("resume_file", selectedFile);
-    } else {
-      submissionData.append("existing_resume_id", String(selectedResumeId));
-    }
+    // We no longer send a File in this step. We send the IDs.
+  const submissionPayload = {
+    position: formData.positionName,
+    template: selectedTemplate,
+    hrIds: selectedIds,
+    // Use the ID from the immediate upload OR the existing selected ID
+    resume_id: resumeOption === "new" ? uploadedFileId : selectedResumeId,
+  };
 
     try {
-      const result = await storeTemplateInfo(submissionData);
+      const result = await storeTemplateInfo(submissionPayload);
       if (result?.success) navigate("/email/jobs");
     } catch (error) {
       console.error("Submission failed", error);
@@ -185,23 +203,15 @@ export const TemplateSelection = () => {
               </div>
 
               {resumeOption === "existing" ? (
-                <div className="relative">
-                  <select
-                    className={`w-full p-3 bg-slate-50 border rounded-xl appearance-none focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.resume ? 'border-red-500' : 'border-slate-200'}`}
-                    onChange={(e) => setSelectedResumeId(Number(e.target.value))}
-                    value={selectedResumeId || ""}
-                  >
-                    <option value="">-- Choose a saved resume --</option>
-                    {resumeList.map((r) => (
-                      <option key={r.id} value={r.id}>{r.file_name}</option>
-                    ))}
-                  </select>
-                  {errors.resume && <p className="text-red-500 text-xs mt-1">{errors.resume}</p>}
-                </div>
+                <ExistingResumeSelect
+                  resumeList={resumeList}
+                  selectedResumeId={selectedResumeId}
+                  onSelect={setSelectedResumeId}
+                  error={errors.resume}
+                />
               ) : (
                 <FileUpload
-                  onFileSelect={(file: File) => setSelectedFile(file)}
-                  selectedFileName={selectedFile?.name}
+                  onUploadSuccess={(id: number) => setUploadedFileId(id)}
                   error={errors.resume}
                 />
               )}
@@ -225,7 +235,7 @@ export const TemplateSelection = () => {
                 Back
               </button>
               <button
-                disabled={loading || !selectedTemplate || hrDetails.length === 0}
+                disabled={loading || !selectedTemplate || hrDetails.length === 0 || !(uploadedFileId || selectedResumeId)}
                 className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-md hover:shadow-lg disabled:bg-slate-300 disabled:shadow-none transition-all active:scale-95"
               >
                 {loading ? "Sending..." : `🚀 Send to ${hrDetails.length} Recipients`}

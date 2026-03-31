@@ -5,6 +5,15 @@ const config = require("config");
 const ALGORITHM = config.get("APP.CRYPTO.ALGO");
 const KEY = config.get("APP.CRYPTO.KEY");
 const IV_LENGTH = config.get("APP.CRYPTO.IV_LENGTH");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3")
+
+const s3Client = new S3Client({
+    region: config.get('APP.AWS.REGION'),
+    credentials: {
+        accessKeyId: config.get('APP.AWS.ACCESS_KEY'),
+        secretAccessKey: config.get('APP.AWS.SECREATE_KEY'),
+    }
+});
 
 // get dashboard summary in hr managemenr page
 async function dashboardCount(req,res,next){
@@ -102,13 +111,12 @@ async function getSelectedHRInfoList(req,res,next){
 // Store template selection data 
 // And return norification event
 async function storeTemplateSelection(req,res,next){
-    const { position, template, hrIds} = req.body;
+    const { position, template, hrIds, resume_id} = req.body;
     const {id} = req.user;
-    const file = req.file;
     let userAppEmail = null;
     let userAppPass = null;
     try { 
-        const filePath = `/uploads/${file.filename}`;
+        console.log(req.body);
 
         // Before create user email job check his app email and password configuration
         const dbResponse = await pgClient('select * from hrmanagement_get_user_app_password_config($1)', [id]);
@@ -122,9 +130,14 @@ async function storeTemplateSelection(req,res,next){
             userAppEmail = dbResponseData?.app_email;
             userAppPass = await decryptPassword(dbResponseData?.app_password);
         };
+        console.log(hrIds);
 
         // ✅ Convert comma string to array of numbers
-        const hrIdsArray = hrIds.split(",").map(id => ({hr_id: Number(id.trim()),status: "pending"}));
+        const hrIdsArray = (Array.isArray(hrIds) ? hrIds : hrIds?.split(",") || [])
+        .map(id => ({
+            hr_id: Number(id), // No need for .trim() if it's already a number
+            status: "pending"
+        }));
 
         // ✅ Convert to JSON (Postgres jsonb compatible)
         const hrIdsJson = JSON.stringify(hrIdsArray);
@@ -136,8 +149,11 @@ async function storeTemplateSelection(req,res,next){
           `SELECT * FROM hrmanagement_store_bulk_template_info(
               $1,$2,$3,$4,$5::jsonb,$6
           )`,
-          [id, position, template, filePath, hrIdsJson, totalCount]
+          [id, position, template, resume_id, hrIdsJson, totalCount]
         );
+        console.log(resume_id);
+
+        console.log("store response of user selection template for hr",response.rows[0]);
 
         await emailQueue.add('send-bulk-email', {
             app_email: userAppEmail,
@@ -145,7 +161,7 @@ async function storeTemplateSelection(req,res,next){
             campaignId: response.rows[0].campaign_id,
             hrIds: hrIdsArray,
             templateId: template,
-            resumePath: filePath,
+            resumePath: response.rows[0].resume_path,
             position: position,
             notificationId : response.rows[0].notification_id
         },{
@@ -197,6 +213,54 @@ async function email_track_open_logs( req, res, next){
   }
 }
 
+// Upload resume directly to the s3 bucket
+async function store_resume_s3( req, res, next){
+    const {id} = req.user;
+    try {
+        const file = req.file;
+
+        if (!file) return res.status(400).json({ error: "No file uploaded" });
+
+        // Define the unique S3 Key (path)
+        const s3Key = `resumes/${id}/${Date.now()}-${file.originalname}`;
+
+        // STEP A: Upload to S3
+        const uploadParams = {
+            Bucket: config.get("APP.AWS.BUCKET_NAME"),
+            Key: s3Key,
+            Body: file.buffer,
+            ContentType: file.mimetype,
+        };
+
+        // This waits for the file to be fully uploaded to S3
+        const s3Response = await s3Client.send(new PutObjectCommand(uploadParams));
+
+        if (s3Response.$metadata.httpStatusCode !== 200) {
+            return res.status(500).json({ status: "upload_failed", message: "S3 rejection" });
+        }
+
+        const dbResult = await pgClient('select * from hrmanagment_store_resume_info($1, $2, $3)', [id, file.originalname, s3Key]);
+
+        return res.status(200).json({
+            status: "success",
+            fileId:  dbResult.rows[0].out_id,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+async function get_user_resume_list( req, res, next ){
+    const { id } = req.user;
+    try {
+        const response = await pgClient('select * from hrmanagement_get_user_resume_list($1)', [id]);
+
+        return res.send({success: true, data: response.rows});
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     dashboardCount,
     storeHrInfo,
@@ -205,5 +269,7 @@ module.exports = {
     getTemplateList,
     getSelectedHRInfoList,
     storeTemplateSelection,
-    email_track_open_logs
+    email_track_open_logs,
+    store_resume_s3,
+    get_user_resume_list
 };

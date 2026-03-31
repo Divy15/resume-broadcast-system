@@ -6,6 +6,15 @@ const config = require("config");
 const googleEmailId = config.get("APP.EMAIL.USER");
 const googlePass = config.get("APP.EMAIL.PASS");
 const nodemailer = require("nodemailer");
+const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+
+const s3Client = new S3Client({
+  region: config.get("APP.AWS.REGION"),
+  credentials: {
+    accessKeyId: config.get("APP.AWS.ACCESS_KEY"),
+    secretAccessKey: config.get("APP.AWS.SECREATE_KEY"),
+  }
+});
 
 let transporter = null
 
@@ -16,7 +25,7 @@ const worker = new Worker(
 
     const { app_email, app_pass, campaignId, hrIds, templateId, resumePath } = job.data;
     let sendCount = 1;
-    console.log(app_email, app_pass);
+    console.log(app_email, app_pass, resumePath);
 
      transporter = nodemailer.createTransport({
   service: "gmail",
@@ -95,6 +104,7 @@ worker.on("failed", (job, err) => {
 });
 
 async function sendDynamicEmail(dbData, filePath, campaignId, hrId) {
+  console.log(dbData)
   const hrInfo = dbData.find((d) => d.hr_info)?.hr_info;
   const templateInfo = dbData.find((d) => d.template_info)?.template_info;
 
@@ -127,18 +137,32 @@ async function sendDynamicEmail(dbData, filePath, campaignId, hrId) {
     ${trackingPixel}
   `;
 
+  const bucketName = config.get("APP.AWS.BUCKET_NAME");
+
+  // Create the S3 Get Command
+  const command = new GetObjectCommand({
+    Bucket: bucketName,
+    Key: filePath, // This is "resumes/1/1774958626402-Divy Gandhi.pdf"
+  });
+
+  // Fetch the file stream from S3
+  const s3Response = await s3Client.send(command);
+
+  const pdfBuffer = await streamToBuffer(s3Response.Body);
+
   const mailOptions = {
     from: `"Divy Gandhi" <${googleEmailId}>`,
     to: "gandhidivy51@gmail.com", // sendDynamicEmail
     subject: finalSubject,
     text: finalBody,
     html: htmlBody,
-    // attachments: [
-    //   {
-    //     filename: filePath.split("/").pop(),
-    //     path: `/home/adminpc/Documents/bulk_hr_email_notification/backend${filePath}`,
-    //   },
-    // ],
+    attachments: [
+      {
+        filename: filePath.split("/").pop(), // Extract "1774958626402-Divy Gandhi.pdf"
+        content: pdfBuffer, // Pass the stream directly to Nodemailer
+        contentType: 'application/pdf'
+      },
+    ],
   };
 
   // /home/adminpc/Documents/bulk_hr_email_notification/backend/uploads/SSC Hall Ticket Distribution List_86-0168.pdf
@@ -179,3 +203,11 @@ function replaceTemplate(template, variables) {
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+const streamToBuffer = (stream) =>
+  new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on("data", (chunk) => chunks.push(chunk));
+    stream.on("error", reject);
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+  });

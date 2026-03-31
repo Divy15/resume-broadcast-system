@@ -67,14 +67,28 @@ router.route('/selected/hr/information/list')
 router.route('/store/template/selection')
 .post(
     authCheck,
-    upload.single('resume'),
     hrManagementController.storeTemplateSelection
 )
+
+// UPLOAD resumes
+router.route('/upload-resume')
+.post(
+    authCheck,
+    upload.single('resume'),
+    hrManagementController.store_resume_s3
+);
 
 // email tracking open logs store
 router.route('/track/open')
 .post(
     hrManagementController.email_track_open_logs
+);
+
+// get user resume list
+router.route('/resume/list')
+.get(
+    authCheck,
+    hrManagementController.get_user_resume_list
 );
 
 module.exports = router;

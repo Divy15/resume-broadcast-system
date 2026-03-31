@@ -26,6 +26,12 @@
             "ALGO": "aes-256-gcm",
             "IV_LENGTH": 12,
             "KEY": "979e0521ddc2323830688f92770abf30fc7d52f07972fd713fabdf74edff253c"
+        },
+        "AWS": {
+            "REGION": "",
+            "ACCESS_KEY": "",
+            "SECREATE_KEY": "",
+            "BUCKET_NAME": ""
         }
     }
 }

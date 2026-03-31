@@ -1,42 +1,114 @@
+import { useState, useRef } from "react";
+import { storeResume } from "../Template.service";
 
+export const FileUpload = ({ onUploadSuccess, error }: any) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [localFile, setLocalFile] = useState<File | null>(null);
+  const [isSuccessfullyUploaded, setIsSuccessfullyUploaded] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-
-export const FileUpload = ({ onFileSelect, selectedFileName, error }: any) => {
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      onFileSelect(e.target.files[0]); // Send the first file up to the parent
+  // Step 1: Just select the file, don't upload yet
+  const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLocalFile(file);
+      setIsSuccessfullyUploaded(false);
+      onUploadSuccess(null); // Reset parent ID because this new file isn't uploaded yet
     }
   };
 
-    return(
-    <div className="group">
-      <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">
+  // Step 2: Triggered by the Button
+  const handleUploadTrigger = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
+    if (!localFile) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("resume", localFile);
+
+    try {
+      const response = await storeResume(formData);
+      if (response?.status === "success") {
+        setIsSuccessfullyUploaded(true);
+        onUploadSuccess(response.fileId); // Now the parent knows it's safe to submit
+      }
+    } catch (err) {
+      alert("Upload failed. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <label className="block text-sm font-bold text-slate-700 uppercase">
         3. Upload Resume
       </label>
-      <label className={`flex flex-col items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-dashed rounded-xl cursor-pointer hover:bg-indigo-50/30 ${
-      error ? "border-red-500 bg-red-50" : "border-slate-200 hover:border-indigo-400"
-    }`}>
-        <div className="flex flex-col items-center space-y-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className={`w-8 h-8 ${selectedFileName ? 'text-green-500' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-          <span className="text-sm font-medium text-slate-500 text-center">
-            {selectedFileName ? (
-              <span className="text-indigo-600 font-bold">Selected: {selectedFileName}</span>
+      
+      <div className={`relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-xl transition-all ${
+        error && !localFile ? "border-red-500 bg-red-50" : "border-slate-200 bg-white"
+      }`}>
+        
+        {!localFile ? (
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="flex flex-col items-center cursor-pointer"
+          >
+            <span className="text-indigo-600 font-medium">Click to select PDF</span>
+            <span className="text-xs text-slate-400 mt-1">File will not be uploaded until you click 'Confirm Upload'</span>
+          </div>
+        ) : (
+          <div className="w-full flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-100 rounded-lg">📄</div>
+              <div>
+                <p className="text-sm font-semibold text-slate-700 truncate max-w-50">
+                  {localFile.name}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {(localFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            </div>
+
+            {isSuccessfullyUploaded ? (
+              <span className="text-green-600 font-bold text-sm flex items-center gap-1">
+                ✓ Uploaded to S3
+              </span>
             ) : (
-              <>Drop PDF here or <span className="text-indigo-600 underline">browse</span></>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLocalFile(null)}
+                  className="text-xs text-red-500 font-medium hover:underline"
+                >
+                  Remove
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUploadTrigger}
+                  disabled={isUploading}
+                  className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 disabled:bg-slate-300 transition-all"
+                >
+                  {isUploading ? "Uploading..." : "Confirm Upload"}
+                </button>
+              </div>
             )}
-          </span>
-        </div>
+          </div>
+        )}
+
         <input 
+          ref={fileInputRef}
           type="file" 
           className="hidden" 
-          accept=".pdf,.doc,.docx" 
-          onChange={handleFileChange} // <--- THIS IS KEY
+          accept=".pdf" 
+          onChange={handleFileSelection} 
         />
-      </label>
-      {error && <p className="text-red-500 text-xs mt-2 italic font-medium text-center">{error}</p>}
+      </div>
+      
+      {error  && (
+        <p className="text-red-500 text-xs italic font-medium">{error}</p>
+      )}
     </div>
-    )
+  );
 };

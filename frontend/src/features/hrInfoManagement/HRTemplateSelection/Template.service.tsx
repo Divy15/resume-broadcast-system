@@ -37,3 +37,21 @@ export const storeTemplateInfo = async (value: any) => {
         throw new Error(error?.response?.data?.message || 'Something went wrong. Please try again.');
     }
 }
+
+export const storeResume = async (value: any) => {
+    try {
+        const response = await app.post(ApiRoutes.hrmanagement.storeResume, value);
+        return response?.data;
+    } catch (error: any) {
+        throw new Error(error?.response?.data?.message || 'Something went wrong. Please try again.');
+    }
+}
+
+export const getUserReueList = async () => {
+    try {
+        const response = await app.get(ApiRoutes.hrmanagement.getResumeList);
+        return response?.data;
+    } catch (error: any) {
+        throw new Error(error?.response?.data?.message || 'Something went wrong. Please try again.');
+    }
+}

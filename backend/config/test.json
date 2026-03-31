@@ -26,6 +26,12 @@
             "ALGO": "CRYPTO_ALGORITH",
             "IV_LENGTH": 16,
             "KEY": "ENTER_THE_ENCRYPT_KEY"
+        },
+        "AWS":{
+            "REGION":"ap-south-1",
+            "ACCESS_KEY": "ACCESS_KEY",
+            "SECREATE_KEY": "SECREATE_KEY",
+            "BUCKET_NAME": "BUCKET_NAME"
         }
     }
 }
