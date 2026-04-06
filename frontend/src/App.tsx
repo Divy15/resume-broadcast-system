@@ -16,6 +16,7 @@ import { ProtectedRoute } from "./features/CommonComponent/ProtectedRoute";
 import { Toaster } from 'react-hot-toast';
 import { Dashboard } from "./features/dashboard/Dashboard.page";
 import { Profile } from "./features/profile/Profile.page";
+import { PublicRoute } from "./features/CommonComponent/PublicRoute";
 
 function App() {
   return (
@@ -28,10 +29,10 @@ function App() {
             <main className="min-h-full mt-9">
               <Routes>
                 {/* Public routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
+                <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+                <Route path="/home" element={<PublicRoute><Home /></PublicRoute>} />
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
 
                 {/* Root redirect - triggers auth check */}
                 <Route

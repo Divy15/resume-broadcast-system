@@ -65,6 +65,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 redirect_url = '/email/config';
             } else if (!is_template_set) {
                 redirect_url = '/templates/new';
+            } else{
+              redirect_url = '/dashboard'
             }
 
             setRedirection({ is_app_pass_set, is_template_set, redirect_url });

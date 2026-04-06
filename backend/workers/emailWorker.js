@@ -23,7 +23,7 @@ const worker = new Worker(
   async (job) => {
     console.log("Processing job:", job.data);
 
-    const { app_email, app_pass, campaignId, hrIds, templateId, resumePath } = job.data;
+    const { app_email, app_pass, campaignId, hrIds, templateId, resumePath, position } = job.data;
     let sendCount = 1;
     console.log(app_email, app_pass, resumePath);
 
@@ -50,7 +50,7 @@ const worker = new Worker(
       sendCount++;
 
       try {
-        await sendDynamicEmail(dbData, resumePath, campaignId, hrId.hr_id);
+        await sendDynamicEmail(dbData, resumePath, campaignId, hrId.hr_id, position);
 
         // Mark this HR as completed
         await pgClient(
@@ -103,7 +103,7 @@ worker.on("failed", (job, err) => {
   console.error(`Job ${job.id} failed`, err);
 });
 
-async function sendDynamicEmail(dbData, filePath, campaignId, hrId) {
+async function sendDynamicEmail(dbData, filePath, campaignId, hrId, position) {
   console.log(dbData)
   const hrInfo = dbData.find((d) => d.hr_info)?.hr_info;
   const templateInfo = dbData.find((d) => d.template_info)?.template_info;
@@ -111,7 +111,7 @@ async function sendDynamicEmail(dbData, filePath, campaignId, hrId) {
   const dynamicData = {
     hr_name: hrInfo.hr_name,
     company_name: hrInfo.company_name,
-    position_name: "Backend Developer",
+    position_name: position,
     your_name: "Divy Gandhi",
   };
 
@@ -150,6 +150,10 @@ async function sendDynamicEmail(dbData, filePath, campaignId, hrId) {
 
   const pdfBuffer = await streamToBuffer(s3Response.Body);
 
+  const baseName = filePath.split("/").pop(); 
+
+  const fileName = baseName.split("-").slice(1).join("-");
+
   const mailOptions = {
     from: `"Divy Gandhi" <${googleEmailId}>`,
     to: "gandhidivy51@gmail.com", // sendDynamicEmail
@@ -158,7 +162,7 @@ async function sendDynamicEmail(dbData, filePath, campaignId, hrId) {
     html: htmlBody,
     attachments: [
       {
-        filename: filePath.split("/").pop(), // Extract "1774958626402-Divy Gandhi.pdf"
+        filename: fileName, // Extract "1774958626402-Divy Gandhi.pdf"
         content: pdfBuffer, // Pass the stream directly to Nodemailer
         contentType: 'application/pdf'
       },

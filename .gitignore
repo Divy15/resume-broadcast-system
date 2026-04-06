@@ -1,6 +1,8 @@
 # ignore config files
 backend/config/*
 
+backend/config/development.json
+
 # skip node modules
 backend/node_modules
 fronted/node_modules

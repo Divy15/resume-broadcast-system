@@ -1,4 +1,4 @@
-import {type HRInforListProps} from "../types/dashboard.types"
+import { type HRInforListProps } from "../types/dashboard.types"
 
 export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRInforListProps) => {
   // Toggle individual checkbox
@@ -20,24 +20,23 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
   const isAllSelected = dataList?.length > 0 && selectedIds.length === dataList?.length;
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:max-h-125 overflow-y-hidden">
+    <div className="w-full rounded-xl border border-slate-200 bg-white shadow-sm h-[500px] overflow-auto relative">
       <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="bg-slate-50 border-b border-slate-200">
+        {/* 2. Made the thead sticky to the top */}
+        <thead className="sticky top-0 z-10 bg-slate-50 shadow-sm">
+          <tr className="border-b border-slate-200">
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">
-              <input 
-                type="checkbox" 
-                checked={isAllSelected} 
-                onChange={toggleSelectAll} 
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={toggleSelectAll}
               />
               <label className="px-2 text-xs">SELECT ALL</label>
             </th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Index</th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Company Details</th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">HR Name</th>
-            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">
-              Position name
-            </th>
+            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Position name</th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500 flex justify-center">Status</th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500"></th>
           </tr>
@@ -45,20 +44,17 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
         <tbody className="divide-y divide-slate-100">
           {dataList?.length > 0 ? (
             dataList.map((item, index) => (
-              <tr key={item.id} className={`
-    transition-colors
-    ${
-      item.is_verified === null
-        ? "bg-yellow-50 hover:bg-yellow-100"
-        : item.is_verified === false
-        ? "bg-red-50 hover:bg-red-100"
-        : "bg-green-50 hover:bg-green-100"
-    }
-  `}>
+              <tr key={item.id} className={`transition-colors${item.is_verified === null
+                  ? "bg-yellow-50 hover:bg-yellow-100"
+                  : item.is_verified === false
+                  ? "bg-red-50 hover:bg-red-100"
+                  : "bg-green-50 hover:bg-green-100"
+                  }
+              `}>
                 <td className="px-6 py-4 text-sm">
-                  <input 
-                    type="checkbox" 
-                    checked={selectedIds.includes(item.id)} 
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(item.id)}
                     onChange={() => toggleSelect(item.id)}
                   />
                 </td>
@@ -81,7 +77,7 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
                 </td>
                 <td className="px-6 py-4 flex justify-end">
                   <button className="border rounded-full p-3 w-25 mx-2 hover:bg-green-300"
-                  onClick={() => toggleSelect(item.id)}>Send</button>
+                    onClick={() => toggleSelect(item.id)}>Send</button>
                 </td>
               </tr>
             ))

@@ -79,7 +79,7 @@ async function create_jwt_token(userData){
         id: userData.id
     };
 
-    return jwt.sign(data, secreatKey,  {expiresIn: 3600});
+    return jwt.sign(data, secreatKey,  {expiresIn: 3600 * 12});
 };
 
 async function auth_user_fronted_redirection(req, res, next){

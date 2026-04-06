@@ -1,5 +1,5 @@
 // src/components/ProtectedRoute.tsx
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isAuthLoading, redirection } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isAuthLoading && isAuthenticated && redirection) {
@@ -45,6 +46,12 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           },
           duration: 5000,
         });
+      }
+    }
+
+    if (!isAuthLoading && isAuthenticated && redirection) {
+      if (location.pathname === "/" || location.pathname === "/login" || location.pathname === "/redirect") {
+        navigate(redirection.redirect_url, { replace: true });
       }
     }
   }, [isAuthLoading, isAuthenticated, redirection, location.pathname]);
