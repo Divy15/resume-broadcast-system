@@ -3,7 +3,7 @@ export type JobStatus = "PROCESSING" | "COMPLETED" | "ERROR" | 'completed' | 'fa
 
 export interface Job {
   jobid: number;
-  job_event: string;
+  scheduled_time: string;
   job_status: JobStatus;
   created: string;
 }
@@ -28,4 +28,5 @@ export interface JobInfoData{
   hr_id: number;
   hr_name: string;
   status: HRJobStatus;
+  send_at: string;
 }

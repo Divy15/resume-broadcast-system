@@ -42,7 +42,7 @@ export const JobsList: React.FC<Props> = ({ jobs, onSelectJob, activeJobId }) =>
                     {job.jobid}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600">
-                    <span className="font-medium">{job.job_event}</span>
+                    <span className="font-medium">{job.scheduled_time === null ? `Immediate Email Job` : `Scheduled Job Process`}</span>
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={job.job_status} />

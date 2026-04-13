@@ -27,16 +27,24 @@ app.interceptors.response.use(
   (response) => response,
   (error) => {
     const message = error.response?.data?.message || error.message || 'An error occurred';
+    const status = error.response?.status;
+    
+    // Check only the path (e.g., "/login")
+    const isLoginPage = window.location.pathname === "/login";
+
+    // 1. Show the toast
     toast.error(message);
 
-    if (error.response && error.response.status === 401) {
-      // Token invalid or expired
-
+    // 2. Handle 401 Unauthorized
+    if (status === 401) {
+      // Clear storage
       localStorage.removeItem("pitchHRtoken");
       localStorage.removeItem("user");
 
-      // redirect to login page
-      window.location.href = "/login";
+      // 3. ONLY redirect if the user is NOT already on the login page
+      if (!isLoginPage) {
+        window.location.href = "/login";
+      }
     }
 
     return Promise.reject(error);

@@ -44,6 +44,9 @@ export const TemplateSelection = () => {
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [uploadedFileId, setUploadedFileId] = useState<number | null>(null);
   const [resumeList, setResumeList] = useState<Array<{id:number, filename:string, upload_at: string}> | []>([]);
+  // Inside TemplateSelection component
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduleTime, setScheduleTime] = useState<string>("");
   
   // Mock/Fetched existing resumes
   useEffect(() => {
@@ -117,17 +120,18 @@ useEffect(() => {
   const handleFormSubmission = async (e: any) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+  
     setLoading(true);
-    // We no longer send a File in this step. We send the IDs.
-  const submissionPayload = {
-    position: formData.positionName,
-    template: selectedTemplate,
-    hrIds: selectedIds,
-    // Use the ID from the immediate upload OR the existing selected ID
-    resume_id: resumeOption === "new" ? uploadedFileId : selectedResumeId,
-  };
-
+  
+    const submissionPayload = {
+      position: formData.positionName,
+      template: selectedTemplate,
+      hrIds: selectedIds,
+      resume_id: resumeOption === "new" ? uploadedFileId : selectedResumeId,
+      // Add this line:
+      scheduleTime: isScheduled ? scheduleTime : null, 
+    };
+  
     try {
       const result = await storeTemplateInfo(submissionPayload);
       if (result?.success) navigate("/email/jobs");
@@ -225,6 +229,40 @@ useEffect(() => {
                <RecipientTable hrDetails={hrDetails} />
             </div>
 
+            <hr className="border-slate-100" />
+
+            {/* Scheduling Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-semibold text-slate-700">Delivery Schedule</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">{isScheduled ? "Scheduled" : "Send Immediately"}</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsScheduled(!isScheduled)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isScheduled ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isScheduled ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+              </div>
+
+              {isScheduled && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <input
+                    type="datetime-local"
+                    value={scheduleTime}
+                    onChange={(e) => setScheduleTime(e.target.value)}
+                    min={new Date().toISOString().slice(0, 16)} // Prevent past dates
+                    className="w-full md:w-64 p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-hidden transition-all"
+                  />
+                  <p className="text-xs text-slate-400 mt-2">
+                    Emails will be queued and sent automatically at the selected time.
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Action Footer */}
             <div className="pt-6 flex items-center justify-between border-t border-slate-100 mt-8">
               <button
@@ -235,7 +273,13 @@ useEffect(() => {
                 Back
               </button>
               <button
-                disabled={loading || !selectedTemplate || hrDetails.length === 0 || !(uploadedFileId || selectedResumeId)}
+                disabled={
+                  loading || 
+                  !selectedTemplate || 
+                  hrDetails.length === 0 || 
+                  !(uploadedFileId || selectedResumeId) ||
+                  (isScheduled && !scheduleTime) // Add this condition
+                }
                 className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-md hover:shadow-lg disabled:bg-slate-300 disabled:shadow-none transition-all active:scale-95"
               >
                 {loading ? "Sending..." : `🚀 Send to ${hrDetails.length} Recipients`}

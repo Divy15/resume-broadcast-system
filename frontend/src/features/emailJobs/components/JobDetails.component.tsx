@@ -59,6 +59,12 @@ export const JobDetails: React.FC<Props> = ({ job, onCancel, jobInfo }) => {
                 <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   <span>Company name: {hr?.company}</span>
                 </div>
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 font-medium">
+                  <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Sent: {formatToIST(hr?.send_at)}</span>
+                </div>
                 <p className="text-sm text-slate-500 pt-1 border-t border-slate-50 mt-2 italic font-medium">
                   {hr?.email}
                 </p>
@@ -78,3 +84,19 @@ const StatusCard = ({ label, count, bg, text, border = "border-transparent" }: a
     <span className="text-2xl font-black leading-none mt-1">{count}</span>
   </div>
 );
+
+const formatToIST = (dateString: string) => {
+  if (!dateString) return "Pending";
+  
+  const date = new Date(dateString);
+  
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true, // This ensures AM/PM format
+  }).format(date);
+};

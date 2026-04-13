@@ -24,7 +24,7 @@ export const Dashboard = () => {
   }, []);
 
   return (
-    <div className="min-h-screen text-gray-900">
+    <div className="text-gray-900">
       <div className="max-w-7xl mx-auto px-6 py-10">
 
         {/* Header */}
