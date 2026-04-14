@@ -91,4 +91,34 @@ router.route('/resume/list')
     hrManagementController.get_user_resume_list
 );
 
+// Get selected HR information list by hrIds
+router.route('/hr/details')
+.post(
+    authCheck,
+    celebrate({
+        [Segments.BODY] : paramValidation.get_hr_details.body
+    }),
+    hrManagementController.get_hr_details
+);
+
+// Get selected HR information list by hrIds
+router.route('/delete/hr/details')
+.post(
+    authCheck,
+    celebrate({
+        [Segments.BODY] : paramValidation.delete_hr_details.body
+    }),
+    hrManagementController.delete_hr_details
+);
+
+// Update HR details
+router.route('/update/hr/details')
+.post(
+    authCheck,
+    celebrate({
+        [Segments.BODY] : paramValidation.update_hr_details.body
+    }),
+    hrManagementController.update_hr_details
+);
+
 module.exports = router;

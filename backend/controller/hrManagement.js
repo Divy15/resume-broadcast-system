@@ -43,11 +43,12 @@ async function storeHrInfo(req, res, next) {
     hrEmail,
     hrMobile,
     positionName,
+    hrLinkedInProfile
   } = req.body;
   const { id } = req.user;
   try {
     await pgClient(
-      "select * from hrmanagement_store_hr_info($1, $2, $3, $4, $5, $6, $7)",
+      "select * from hrmanagement_store_hr_info($1, $2, $3, $4, $5, $6, $7, $8)",
       [
         id,
         companyName,
@@ -56,6 +57,7 @@ async function storeHrInfo(req, res, next) {
         hrEmail,
         hrMobile,
         positionName,
+        hrLinkedInProfile
       ],
     );
 
@@ -368,6 +370,42 @@ async function get_user_resume_list(req, res, next) {
   }
 }
 
+// Get hr details for updataion
+async function get_hr_details(req, res, next){
+  const {id} = req.body;
+  try {
+    const response = await pgClient("select * from hrmanagement_get_hr_details($1)", [id]);
+
+    return res.send({success: true, data: response.rows});
+  } catch (error) {
+    next(error);
+  }
+}
+
+// delete hr details
+async function delete_hr_details(req, res, next){
+  const {id} = req.body;
+  try {
+    const response = await pgClient("select * from hrmanagement_delete_hr_details($1)", [id]);
+
+    return res.send({success: true, data: response.rows});
+  } catch (error) {
+    next(error);
+  }
+}
+
+// update hr details 
+async function update_hr_details( req, res, next ){
+  const {id, company_name, hr_name, email, mobileno, company_website, hr_linkedin_profile_link} = req.body;
+  try {
+    await pgClient("select * from hrmanagement_update_hr_details($1, $2, $3, $4, $5, $6, $7)", [id, company_name, hr_name, email, mobileno, company_website, hr_linkedin_profile_link ]);
+
+    return res.send({success: true, message: "HR details is updated successfull"})
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   dashboardCount,
   storeHrInfo,
@@ -379,4 +417,7 @@ module.exports = {
   email_track_open_logs,
   store_resume_s3,
   get_user_resume_list,
+  get_hr_details,
+  delete_hr_details,
+  update_hr_details,
 };

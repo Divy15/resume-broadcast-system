@@ -10,6 +10,9 @@ export const ApiRoutes = {
         "storeTemplateSelection" : "/hr/management/store/template/selection",
         "storeResume": "/hr/management/upload-resume",
         "getResumeList": "/hr/management/resume/list",
+        "getHRDetails": "/hr/management/hr/details",
+        "deleteHRDetails": "/hr/management/delete/hr/details",
+        "updateHRDetails": "/hr/management/update/hr/details",
     },
 
     "emailJob" : {

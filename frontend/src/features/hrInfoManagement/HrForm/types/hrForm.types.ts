@@ -6,7 +6,9 @@ export interface FormData {
     hrName: string; 
     hrEmail: string; 
     hrMobile: string; 
-    positionName: string; }
+    positionName: string;
+    hrLinkedInProfile: string;
+}
 
 // Used in HRInfoForm component
 export type FormErrors = Partial<Record<keyof FormData, string>>;

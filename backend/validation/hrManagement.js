@@ -38,7 +38,11 @@ module.exports = {
                 'any.required': 'hrMobile is required',
                 'string.base': 'hrMobile must be a string',
                 'string.pattern.base': 'hrMobile must be a valid phone number'
-            })
+            }),
+            hrLinkedInProfile: Joi.string().allow(null, '').required().messages({
+                'any.required': 'HR LinkedIn profile like is required',
+                'string.uri': 'HR LinkedIn profile like must be a valid URL'
+            }),
         })
     },
 
@@ -60,5 +64,57 @@ module.exports = {
                 'any.only': 'filterName must be either all_records, hr_asc, hr_desc or not_applied_yet'
             })
         })
-    }
+    },
+
+    get_hr_details: {
+        body: Joi.object({
+            id: Joi.number().required().messages({
+                'number.base': "HR id must be number",
+                "any.required": "HR id is required for get details."
+            })
+        })
+    },
+
+    delete_hr_details: {
+        body: Joi.object({
+            id: Joi.number().required().messages({
+                'number.base': "HR id must be number",
+                "any.required": "HR id is required for get details."
+            })
+        })
+    },
+
+    update_hr_details: {
+    body: Joi.object({
+        id: Joi.string().required().messages({
+            'string.base': 'HR ID should be a type of text',
+            'string.empty': 'HR ID cannot be an empty field',
+            'any.required': 'HR ID is a required field'
+        }),
+        company_name: Joi.string().required().messages({
+            'any.required': 'companyName is required',
+            'string.base': 'companyName must be a string'
+        }),
+        hr_name: Joi.string().required().messages({
+            'any.required': 'hrName is required',
+            'string.base': 'hrName must be a string'
+        }),
+        email: Joi.string().email().required().messages({
+            'any.required': 'hrEmail is required',
+            'string.email': 'hrEmail must be a valid email address'
+        }),
+        mobileno: Joi.string().min(10).max(10).regex(/^[0-9]+$/).allow(null, '').required().messages({
+            'any.required': 'hrMobile is required',
+            'string.base': 'hrMobile must be a string',
+            'string.pattern.base': 'hrMobile must be a valid phone number'
+        }),
+        company_website: Joi.string().allow(null, '').required().messages({
+            'any.required': 'companyWebsite is required',
+            'string.uri': 'companyWebsite must be a valid URL'
+        }),
+        hr_linkedin_profile_link: Joi.string().allow(null, '').required().messages({
+            'any.required': 'HR LinkedIn profile link is required'
+        })
+    })
+    },
 }

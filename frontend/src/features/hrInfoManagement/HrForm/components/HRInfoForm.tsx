@@ -6,7 +6,7 @@ import {FormField} from "../../../CommonComponent/FormField";
 import {type FormData, type FormErrors, type PositionListResult } from "../types/hrForm.types";
 
 export const HRInfoFormComp: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({ companyName: "", companyWebsite: "", hrName: "", hrEmail: "", hrMobile: "", positionName: "" });
+  const [formData, setFormData] = useState<FormData>({ companyName: "", companyWebsite: "", hrName: "", hrEmail: "", hrMobile: "", positionName: "", hrLinkedInProfile: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [positionList, setPositinList] = useState<Array<PositionListResult> | []>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -31,6 +31,7 @@ export const HRInfoFormComp: React.FC = () => {
     if (!/\S+@\S+\.\S+/.test(formData.hrEmail)) newErrors.hrEmail = "Invalid email";
     if (formData.hrMobile.length !== 10 && formData.hrMobile.length !== 0) newErrors.hrMobile = "Must be 10 digits";
     if (!formData.positionName) newErrors.positionName = "Please enter position name.";
+    if (!formData.hrLinkedInProfile) newErrors.hrLinkedInProfile = "Please enter HR LinkedIn Profile linke.";
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -95,8 +96,12 @@ export const HRInfoFormComp: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField label="HR Name" name="hrName" value={formData.hrName} onChange={handleChange} error={errors.hrName} />
-            <FormField label="Email" name="hrEmail" type="email" value={formData.hrEmail} onChange={handleChange} error={errors.hrEmail} />
-            <FormField label="Mobile" name="hrMobile" value={formData.hrMobile} onChange={handleChange} error={errors.hrMobile} />
+            <FormField label="HR Email" name="hrEmail" type="email" value={formData.hrEmail} onChange={handleChange} error={errors.hrEmail} />
+            <FormField label="HR Mobile" name="hrMobile" value={formData.hrMobile} onChange={handleChange} error={errors.hrMobile} />
+          </div>
+
+          <div>
+            <FormField label="HR LinkedIn Profile Link" name="hrLinkedInProfile" value={formData.hrLinkedInProfile} onChange={handleChange} error={errors.hrName}/>
           </div>
 
           <div className="relative space-y-1">

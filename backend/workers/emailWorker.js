@@ -156,7 +156,7 @@ async function sendDynamicEmail(dbData, filePath, campaignId, hrId, position) {
 
   const mailOptions = {
     from: `"Divy Gandhi" <${googleEmailId}>`,
-    to: "gandhidivy51@gmail.com", // sendDynamicEmail
+    to: hrInfo.email, // sendDynamicEmail
     subject: finalSubject,
     text: finalBody,
     html: htmlBody,
