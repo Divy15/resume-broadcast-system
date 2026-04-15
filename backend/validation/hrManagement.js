@@ -86,9 +86,9 @@ module.exports = {
 
     update_hr_details: {
     body: Joi.object({
-        id: Joi.string().required().messages({
-            'string.base': 'HR ID should be a type of text',
-            'string.empty': 'HR ID cannot be an empty field',
+        id: Joi.number().required().messages({
+            'number.base': 'HR ID should be a type of text',
+            'number.empty': 'HR ID cannot be an empty field',
             'any.required': 'HR ID is a required field'
         }),
         company_name: Joi.string().required().messages({

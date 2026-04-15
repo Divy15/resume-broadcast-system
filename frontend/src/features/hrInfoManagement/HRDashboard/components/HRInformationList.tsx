@@ -1,6 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import { type HRInforListProps } from "../types/dashboard.types"
 
 export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRInforListProps) => {
+
+  const navigate = useNavigate();
+
   // Toggle individual checkbox
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) =>
@@ -20,7 +24,7 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
   const isAllSelected = dataList?.length > 0 && selectedIds.length === dataList?.length;
 
   return (
-    <div className="w-full rounded-xl border border-slate-200 bg-white shadow-sm h-[500px] overflow-auto relative">
+    <div className="w-full rounded-xl border border-slate-200 bg-white shadow-sm h-125 overflow-auto relative">
       <table className="w-full text-left border-collapse">
         {/* 2. Made the thead sticky to the top */}
         <thead className="sticky top-0 z-10 bg-slate-50 shadow-sm">
@@ -75,8 +79,16 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
                     </span>
                   )}
                 </td>
-                <td className="px-6 py-4 flex justify-end">
-                  <button className="border rounded-full p-3 w-25 mx-2 hover:bg-green-300"
+                <td className="px-6 py-4 flex justify-end gap-2"> {/* Added gap and updated cell */}
+                  {/* MODIFIED: Add View/Edit Button */}
+                  <button
+                    className="border rounded-full px-4 py-2 text-sm font-medium border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+                    onClick={() => navigate(`/hr/edit/${item.id}`)} // Replace with your actual route
+                  >
+                    View
+                  </button>
+
+                  <button className="border rounded-full p-3 w-25 hover:bg-green-300"
                     onClick={() => toggleSelect(item.id)}>Send</button>
                 </td>
               </tr>

@@ -17,6 +17,7 @@ import { Toaster } from 'react-hot-toast';
 import { Dashboard } from "./features/dashboard/Dashboard.page";
 import { Profile } from "./features/profile/Profile.page";
 import { PublicRoute } from "./features/CommonComponent/PublicRoute";
+import { EditHrForm } from "./features/hrInfoManagement/HRDashboard/components/EditHrForm";
 
 function App() {
   return (
@@ -52,6 +53,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/hr/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <EditHrForm />
                     </ProtectedRoute>
                   }
                 />
