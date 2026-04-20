@@ -18,6 +18,7 @@ import { Dashboard } from "./features/dashboard/Dashboard.page";
 import { Profile } from "./features/profile/Profile.page";
 import { PublicRoute } from "./features/CommonComponent/PublicRoute";
 import { EditHrForm } from "./features/hrInfoManagement/HRDashboard/components/EditHrForm";
+import { CompanyRegistrationPage } from "./features/companyRegistration/CompanyRegistration.page";
 
 function App() {
   return (
@@ -133,6 +134,15 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <AppPasswordPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/company/registration"
+                  element={
+                    <ProtectedRoute>
+                      <CompanyRegistrationPage />
                     </ProtectedRoute>
                   }
                 />

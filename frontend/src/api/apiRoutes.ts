@@ -50,6 +50,16 @@ export const ApiRoutes = {
         "getProfileDetails": "/profile/get/profile/details",
         "updateProfileDetails": "/profile/update/profile/details",
         "updateProfilePassword": "/profile/update/profile/password"
+    },
+
+    "companyRegistration": {
+        "companyCount": "/company/registration/company/count",
+        "filteredCompanyList": "/company/registration/filtered/company/list",
+        "companyList": "/company/registration/company/list",
+        "storeCompanyData": "/company/registration/store/company/data",
+        "updateCompanyData": "/company/registration/update/company/data",
+        "selectedCompanyData": "/company/registration/company/data",
+        "deleteCompanyData": "/company/registration/delete/company/data"
     }
     
 };

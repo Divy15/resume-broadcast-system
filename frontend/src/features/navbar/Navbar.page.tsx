@@ -21,7 +21,8 @@ const Navbar: React.FC = () => {
     { label: 'Dashboard', path: '/dashboard' },
     { label: 'Template Editor', path: '/templates' },
     { label: 'Homepage', path: '/home' },
-    { label: 'Email Config', path: '/email/config'}
+    { label: 'Email Config', path: '/email/config'},
+    { label: 'Company List', path: '/company/registration'}
   ];
 
   // Filter links: 
