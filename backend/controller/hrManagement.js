@@ -177,7 +177,7 @@ async function getSelectedHRInfoList(req, res, next) {
 // And return norification event
 async function storeTemplateSelection(req, res, next) {
   const { position, template, hrIds, resume_id, scheduleTime } = req.body;
-  const { id } = req.user;
+  const { id, username } = req.user;
   let userAppEmail = null;
   let userAppPass = null;
 
@@ -253,6 +253,7 @@ async function storeTemplateSelection(req, res, next) {
         resumePath: response.rows[0].resume_path,
         position: position,
         notificationId: response.rows[0].notification_id,
+        username: username
       },
       {
         delay: delayInMs,

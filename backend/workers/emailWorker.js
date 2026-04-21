@@ -23,7 +23,7 @@ const worker = new Worker(
   async (job) => {
     console.log("Processing job:", job.data);
 
-    const { app_email, app_pass, campaignId, hrIds, templateId, resumePath, position } = job.data;
+    const { app_email, app_pass, campaignId, hrIds, templateId, resumePath, position, username } = job.data;
     let sendCount = 1;
     console.log(app_email, app_pass, resumePath);
 
@@ -50,7 +50,7 @@ const worker = new Worker(
       sendCount++;
 
       try {
-        await sendDynamicEmail(dbData, resumePath, campaignId, hrId.hr_id, position);
+        await sendDynamicEmail(dbData, resumePath, campaignId, hrId.hr_id, position, username, app_email);
 
         // Mark this HR as completed
         await pgClient(
@@ -103,7 +103,7 @@ worker.on("failed", (job, err) => {
   console.error(`Job ${job.id} failed`, err);
 });
 
-async function sendDynamicEmail(dbData, filePath, campaignId, hrId, position) {
+async function sendDynamicEmail(dbData, filePath, campaignId, hrId, position, username, app_email) {
   console.log(dbData)
   const hrInfo = dbData.find((d) => d.hr_info)?.hr_info;
   const templateInfo = dbData.find((d) => d.template_info)?.template_info;
@@ -112,7 +112,7 @@ async function sendDynamicEmail(dbData, filePath, campaignId, hrId, position) {
     hr_name: hrInfo.hr_name,
     company_name: hrInfo.company_name,
     position_name: position,
-    your_name: "Divy Gandhi",
+    your_name: username,
   };
 
   const finalSubject = replaceTemplate(templateInfo.subject_title, dynamicData);
@@ -155,7 +155,7 @@ async function sendDynamicEmail(dbData, filePath, campaignId, hrId, position) {
   const fileName = baseName.split("-").slice(1).join("-");
 
   const mailOptions = {
-    from: `"Divy Gandhi" <${googleEmailId}>`,
+    from: `${username} <${app_email}>`,
     to: hrInfo.email, // sendDynamicEmail
     subject: finalSubject,
     text: finalBody,
