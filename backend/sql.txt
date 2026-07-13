@@ -198,7 +198,16 @@ CREATE OR REPLACE FUNCTION public.hrmanagement_get_hr_info_list(
 	in_userid integer,
 	in_searchterm character varying,
 	in_filtername character varying)
-    RETURNS TABLE(id integer, company_name character varying, hr_name character varying, position_name character varying, is_applied boolean, is_verified boolean) 
+    RETURNS TABLE(
+		id integer, 
+		company_name character varying, 
+		hr_name character varying, 
+		position_name character varying, 
+		is_applied boolean, 
+		is_verified boolean,
+		created_at timestamp without time zone,      -- 1. ADDED TO RETURN DEFINITION
+		last_applied_at timestamp without time zone   -- 2. ADDED TO RETURN DEFINITION
+	) 
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE SECURITY DEFINER PARALLEL UNSAFE
@@ -209,21 +218,30 @@ DECLARE SQL VARCHAR;
 BEGIN
 
 	SQL := 'select
-	hr.id,
-	hr.company_name,
-	hr.hr_name,
-	pm.position_name,
-	hr.is_applied,
-	hr.is_verified
+		hr.id,
+		hr.company_name,
+		hr.hr_name,
+		pm.position_name,
+		hr.is_applied,
+		hr.is_verified,
+		hr.created_at,        -- 3. SELECTING BARE CREATION TIME
+		ap.last_send_at       -- 4. SELECTING AGGREGATED VALUE FROM OUR LEFT JOIN
 	from hr_info hr
 	join position_master pm on pm.id = hr.position_id
-	WHERE 1 = 1';
-
-	SQL := SQL || ' AND user_id = ' || in_userid;
+	
+	/* 5. LEFT JOIN BRINGS THE LATEST APPLICATION TIMESTAMP OR NULL PER HR */
+	left join (
+		select hr_id, max(send_at) as last_send_at 
+		from application_history 
+		group by hr_id
+	) ap on ap.hr_id = hr.id
+	
+	/* 6. SWITCHED TO A PARAMETERIZED POSITION BIND ($1) FOR INJECTION SAFETY */
+	WHERE hr.user_id = $1';
 
 	IF in_searchterm IS NOT NULL THEN
-	SQL := SQL || ' AND (hr.company_name ilike ' || quote_literal(in_searchterm || '%') || ' OR hr.hr_name ilike ' ||
-	quote_literal(in_searchterm || '%') || ' )';
+		SQL := SQL || ' AND (hr.company_name ilike ' || quote_literal(in_searchterm || '%') || ' OR hr.hr_name ilike ' ||
+		quote_literal(in_searchterm || '%') || ' )';
 	END IF;
 
 	IF in_filtername <> 'all_records' THEN
@@ -231,14 +249,14 @@ BEGIN
 			SQL := SQL || ' AND hr.is_applied = false';
 		ELSIF in_filtername = 'hr_desc' THEN
 			SQL := SQL || ' ORDER BY hr.hr_name DESC';
-		ELSE SQL := SQL || 'ORDER BY hr.hr_name';
+		ELSE 
+			SQL := SQL || ' ORDER BY hr.created_at DESC';
 		END IF;
 	END IF;
 		
-
-	RETURN QUERY EXECUTE SQL;
+	/* 7. SAFELY PASSED IN_USERID AS AN ISOLATED QUERY BIND PARAMETER */
+	RETURN QUERY EXECUTE SQL USING in_userid;
 	
-
 END;
 $BODY$;
 

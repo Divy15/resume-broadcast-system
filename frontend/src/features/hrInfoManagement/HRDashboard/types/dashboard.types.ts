@@ -15,7 +15,9 @@ export interface HRInformationResponseList{
   id : number,
   position_name: string,
   is_applied : boolean | null,
-  is_verified : boolean | null
+  is_verified : boolean | null;
+  created_at: string;        // <-- ADDED: ISO string from DB
+  last_applied_at: string | null; // <-- ADDED: ISO string or null if never applied
 };
 
 // Used in HRFilter component
