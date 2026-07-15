@@ -783,10 +783,12 @@ RETURN QUERY
   t.template_name,
   t.updated_at
   from template_master t
-  where t.userid = in_userid ;
+  where t.userid = in_userid
+  ORDER BY t.created_at DESC;
 
 END;
 $BODY$;
+
 
 ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION template_config_get_template_info(in_templateid integer)
