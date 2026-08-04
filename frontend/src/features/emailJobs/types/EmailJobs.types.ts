@@ -18,7 +18,7 @@ export interface HRJob {
 }
 
 export interface GetJobInfoProps {
-  jobid : number | null | undefined;
+  jobid : number | null | undefined | string;
 }
 
 export interface JobInfoData{
