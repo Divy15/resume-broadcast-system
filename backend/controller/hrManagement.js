@@ -98,23 +98,28 @@ async function getPostionList(req, res, next) {
 
 // get hr list by filtered(filter by company name or hr name) or non filtered
 async function getHRInfoList(req, res, next) {
-  const { searchTerm, filterName } = req.body;
+  const { searchTerm, filterName, page = 1, limit = 15 } = req.body;
   const { id } = req.user;
   try {
     const response = await pgClient(
-      "select * from hrmanagement_get_hr_info_list($1, $2, $3)",
-      [id, searchTerm, filterName],
+      "select * from hrmanagement_get_hr_info_list($1, $2, $3, $4, $5)",
+      [id, searchTerm, filterName, parseInt(page), parseInt(limit)],
     );
 
     if (response.rows.length === 0) {
       return res
-        .status(204)
-        .send({ success: true, message: "No HR information found." });
+        .status(200)
+        .send({ success: true, message: "No HR information found.", data: [], totalRecords: 0, totalPages: 0 });
     }
+
+    const totalRecords = parseInt(response.rows[0].total_count) || 0;
+    const totalPages = Math.ceil(totalRecords / limit);
 
     return res.send({
       success: true,
       data: response.rows,
+      totalRecords,
+      totalPages,
       message: `Found ${response.rows.length} HR records.`,
     });
   } catch (error) {

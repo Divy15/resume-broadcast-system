@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { HRDashboardService } from '../HRDashboard.service';
 import { HrInformationList } from './HRInformationList';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +23,10 @@ export const HRFilterComp: React.FC = () => {
     total_company : 0,
     total_hr : 0
   }]);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(15);
   const [hrInfoList, setHRInfoList] = useState<Array<HRInformationResponseList> | []>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const navigate = useNavigate();
@@ -39,11 +44,13 @@ export const HRFilterComp: React.FC = () => {
       try {
         const [countRes, listRes] = await Promise.all([
           HRDashboardService.getHRDashboardCount(),
-          HRDashboardService.getHRInformationList({ searchTerm: '', filterName: '' })
+          HRDashboardService.getHRInformationList({ searchTerm: '', filterName: '', page: 1, limit: limit })
         ]);
 
         if (countRes?.length) setSummaryData(countRes);
         if (listRes?.data) setHRInfoList(listRes.data);
+        if (listRes?.totalPages !== undefined) setTotalPages(listRes.totalPages);
+        if (listRes?.totalRecords !== undefined) setTotalRecords(listRes.totalRecords);
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
       } finally {
@@ -60,15 +67,17 @@ export const HRFilterComp: React.FC = () => {
     // but for the first search, or a manual trigger, you can use it.
     const fetchFilteredList = async () => {
       try {
-        const data = { searchTerm, filterName: filter };
+        const data = { searchTerm, filterName: filter, page, limit };
         const response = await HRDashboardService.getHRInformationList(data);
         setHRInfoList(response?.data || []);
+        if (response?.totalPages !== undefined) setTotalPages(response.totalPages);
+        if (response?.totalRecords !== undefined) setTotalRecords(response.totalRecords);
       } catch (error) { console.error(error); }
     };
 
-        fetchFilteredList();
+    fetchFilteredList();
     
-  }, [searchTerm, filter]);
+  }, [searchTerm, filter, page, limit]);
 
   return (
     <div className="w-full bg-slate-50">
@@ -85,21 +94,34 @@ export const HRFilterComp: React.FC = () => {
               <input 
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
                 placeholder="Search HR or Company..."
                 className="w-full pl-3 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
               />
             </div>
             
-            <select 
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as FilterType)}
-              className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none"
-            >
-              {hrSortOptions.map((item,index) => (
-                <option key={index} value={item.value}>{item.label}</option>
-              ))}
-            </select>
+            <div className="flex flex-col md:flex-row gap-3">
+              <select 
+                value={filter}
+                onChange={(e) => { setFilter(e.target.value as FilterType); setPage(1); }}
+                className="flex-1 p-2 border border-slate-300 rounded-lg bg-white text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none"
+              >
+                {hrSortOptions.map((item,index) => (
+                  <option key={index} value={item.value}>{item.label}</option>
+                ))}
+              </select>
+
+              <select 
+                value={limit}
+                onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                className="w-full md:w-32 p-2 border border-slate-300 rounded-lg bg-white text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none"
+              >
+                <option value={15}>15 / page</option>
+                <option value={25}>25 / page</option>
+                <option value={50}>50 / page</option>
+                <option value={100}>100 / page</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -122,7 +144,35 @@ export const HRFilterComp: React.FC = () => {
           <HrInformationList 
           dataList = {hrInfoList}
           selectedIds={selectedIds} 
-          setSelectedIds={setSelectedIds}/>
+          setSelectedIds={setSelectedIds}
+          page={page}
+          limit={limit}/>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div className="text-sm text-slate-600">
+            Showing {totalRecords === 0 ? 0 : (page - 1) * limit + 1} to {Math.min(page * limit, totalRecords)} of {totalRecords} entries
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="p-2 rounded border border-slate-300 disabled:opacity-50 hover:bg-slate-50 transition-colors"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span className="text-sm text-slate-600 font-medium px-2">
+              Page {page} of {totalPages === 0 ? 1 : totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages || totalPages === 0}
+              className="p-2 rounded border border-slate-300 disabled:opacity-50 hover:bg-slate-50 transition-colors"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

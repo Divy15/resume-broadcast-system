@@ -3,6 +3,8 @@ backend/config/*
 
 backend/config/development.json
 
+backend/.env
+
 # skip node modules
 backend/node_modules
 fronted/node_modules

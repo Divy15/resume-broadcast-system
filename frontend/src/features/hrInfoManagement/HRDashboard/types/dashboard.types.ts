@@ -32,6 +32,8 @@ export interface HRInforListProps {
   dataList: HRInformationResponseList[] | [];
   selectedIds: number[];
   setSelectedIds: React.Dispatch<React.SetStateAction<number[]>>; 
+  page: number;
+  limit: number;
 }
 
 export interface GetHRInformationAPIProps{
@@ -55,6 +57,8 @@ export interface UpdateHRInformationAPIProps{
 export interface GetHRInformationListAPIPoprs{
     searchTerm: string | null;
     filterName : string | null;
+    page?: number;
+    limit?: number;
 };
 
 export interface HRInformation {

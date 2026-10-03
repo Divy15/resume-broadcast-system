@@ -18,5 +18,9 @@
   "scripts": {
     "start": "nodemon index.js",
     "worker": "nodemon workers/emailWorker.js"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0"
   }
 }

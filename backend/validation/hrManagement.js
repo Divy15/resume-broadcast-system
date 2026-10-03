@@ -62,6 +62,12 @@ module.exports = {
             filterName: Joi.string().valid('all_records', 'hr_asc', 'hr_desc', 'not_applied_yet', '').required().messages({
                 'string.base': 'filterName must be a string',
                 'any.only': 'filterName must be either all_records, hr_asc, hr_desc or not_applied_yet'
+            }),
+            page: Joi.number().integer().min(1).optional().messages({
+                'number.base': 'page must be a number'
+            }),
+            limit: Joi.number().integer().min(1).optional().messages({
+                'number.base': 'limit must be a number'
             })
         })
     },

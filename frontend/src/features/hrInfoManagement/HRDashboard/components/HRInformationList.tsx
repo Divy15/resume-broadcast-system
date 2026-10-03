@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { type HRInforListProps } from "../types/dashboard.types";
 
-export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRInforListProps) => {
+export const HrInformationList = ({ dataList, selectedIds, setSelectedIds, page, limit }: HRInforListProps) => {
   const navigate = useNavigate();
 
   // Helper utility to convert ISO timestamp strings into clean local displays
@@ -71,7 +71,7 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds }: HRI
                 <td className="px-6 py-4 text-sm">
                   <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleSelect(item.id)} />
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-400">#{index + 1}</td>
+                <td className="px-6 py-4 text-sm text-slate-400">#{(page - 1) * limit + index + 1}</td>
                 <td className="px-6 py-4">
                   <span className="font-semibold text-slate-800">{item.company_name}</span>
                 </td>

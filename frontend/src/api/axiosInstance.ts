@@ -1,12 +1,12 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import toast from 'react-hot-toast';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'http://10.227.25.112:3000/api';
 
 const confg: AxiosRequestConfig = {
-    baseURL: API_BASE_URL,
-    timeout: 2000, // Request timeout
-    withCredentials: true
+  baseURL: API_BASE_URL,
+  timeout: 2000, // Request timeout
+  withCredentials: true
 };
 
 const app = axios.create(confg);
@@ -28,7 +28,7 @@ app.interceptors.response.use(
   (error) => {
     const message = error.response?.data?.message || error.message || 'An error occurred';
     const status = error.response?.status;
-    
+
     // Check only the path (e.g., "/login")
     const isLoginPage = window.location.pathname === "/login";
 

@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: 
+      context: .
+      target: builder
+    container_name: react_frontend
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"  # Vite dev server standard port
+    command: npm run dev -- --host

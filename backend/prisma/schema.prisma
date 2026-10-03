@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ApplicationHistory {
+  id             Int       @id @default(autoincrement())
+  campaign_id    Int
+  hr_id          Int
+  tracking_token String    @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  send_status    String    @default("pending") @db.VarChar(20)
+  is_opened      Boolean   @default(false)
+  opened_at      DateTime? @db.Timestamp(6)
+  open_count     Int       @default(0)
+  created_at     DateTime  @default(now()) @db.Timestamp(6)
+  send_at        DateTime? @db.Timestamp(6)
+
+  @@map("application_history")
+}
+
+model CompanyInfo {
+  id         Int       @id @default(autoincrement())
+  userid     Int?
+  name       String?   @db.VarChar
+  website    String?   @db.VarChar
+  linkedin   String?   @db.VarChar
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("company_info")
+}
+
+model EmailCampaigns {
+  campaign_id    Int       @id @default(autoincrement())
+  user_id        Int?
+  position_name  String?   @db.VarChar
+  template_id    Int?
+  resumeid       String?   @db.VarChar
+  status         String?   @default("PROCESSING") @db.VarChar
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  scheduled_time String?   @db.VarChar
+
+  @@map("email_campaigns")
+}
+
+model EventMaster {
+  event_id   Int    @id @default(autoincrement())
+  event_type String @db.VarChar(50)
+
+  @@map("event_master")
+}
+
+model HrInfo {
+  id                       Int       @id @default(autoincrement())
+  user_id                  Int?
+  company_name             String?   @db.VarChar
+  hr_name                  String?   @db.VarChar
+  email                    String?   @db.VarChar
+  mobileno                 String?   @db.VarChar
+  company_website          String?   @db.VarChar
+  position_id              Int?
+  is_applied               Boolean?  @default(false)
+  is_verified              Boolean?
+  created_at               DateTime? @default(now()) @db.Timestamp(6)
+  hr_linkedin_profile_link String?   @db.VarChar
+
+  @@map("hr_info")
+}
+
+model Notifications {
+  notification_id      Int       @id @default(autoincrement())
+  campaign_id          Int?
+  notification_message String?
+  is_read              Boolean?  @default(false)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("notifications")
+}
+
+model PositionMaster {
+  id            Int       @id @default(autoincrement())
+  position_name String?   @unique @db.VarChar
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("position_master")
+}
+
+model TemplateDeletionLog {
+  id          Int       @id @default(autoincrement())
+  template_id Int?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("template_deletion_log")
+}
+
+model TemplateMaster {
+  id            Int       @id @default(autoincrement())
+  userid        Int?
+  template_name String?   @db.VarChar
+  subject_title String?   @db.VarChar
+  body          String?   @db.VarChar
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("template_master")
+}
+
+model TemplateUpdationLog {
+  id               Int       @id @default(autoincrement())
+  template_id      Int?
+  template_name    String?   @db.VarChar
+  template_subject String?   @db.VarChar
+  template_body    String?   @db.VarChar
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("template_updation_log")
+}
+
+model UserMaster {
+  id           Int       @id @default(autoincrement())
+  username     String?   @db.VarChar
+  email        String?   @db.VarChar
+  password     String?   @db.VarChar
+  country      String?   @db.VarChar
+  dob          DateTime? @db.Date
+  app_email    String?   @db.VarChar
+  app_password String?   @db.VarChar
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("user_master")
+}
+
+model UserResume {
+  id        Int       @id @default(autoincrement())
+  userid    Int?
+  filename  String?   @db.VarChar
+  filepath  String?   @db.VarChar
+  upload_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("user_resume")
+}

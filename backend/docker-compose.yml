@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # Main API Backend
+  api:
+    build: .
+    container_name: main_api
+    network_mode: "host"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm start
+
+  # Background Worker
+  worker:
+    build: .
+    container_name: backend_worker
+    network_mode: "host"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run worker
