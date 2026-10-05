@@ -13,7 +13,6 @@ import { StatusBadge } from '../../../CommonComponent/StatusBadge';
 // --- 1. Validation Schema (Yup) ---
 const validationSchema = Yup.object({
   company_name: Yup.string().required('Company name is required'),
-  hr_name: Yup.string().required('HR name is required'),
   email: Yup.string().email('Invalid email address').required('Email is required'),
   mobileno: Yup.string()
     .matches(/^[0-9]+$/, "Must be only digits")
@@ -113,7 +112,7 @@ export const EditHrForm: React.FC = () => {
 
     // Standard confirmation dialog
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${initialData.hr_name}? This action cannot be undone.`
+      `Are you sure you want to delete this HR record? This action cannot be undone.`
     );
 
     if (confirmDelete) {

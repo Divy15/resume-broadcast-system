@@ -13,9 +13,9 @@ export interface HRInformationResponseList{
   company_name : string,
   hr_name : string,
   id : number,
-  position_name: string,
   is_applied : boolean | null,
   is_verified : boolean | null;
+  hr_linkedin_profile_link: string;
   created_at: string;        // <-- ADDED: ISO string from DB
   last_applied_at: string | null; // <-- ADDED: ISO string or null if never applied
 };
@@ -68,8 +68,6 @@ export interface HRInformation {
   email: string;
   mobileno: string;
   company_website: string;
-  position_id: number;
-  position_name?: string; // Often returned by GET but not sent in UPDATE
   is_applied: boolean;
   is_verified: boolean | null;
   hr_linkedin_profile_link: string;

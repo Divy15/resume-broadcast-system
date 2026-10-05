@@ -61,7 +61,6 @@ model HrInfo {
   email                    String?   @db.VarChar
   mobileno                 String?   @db.VarChar
   company_website          String?   @db.VarChar
-  position_id              Int?
   is_applied               Boolean?  @default(false)
   is_verified              Boolean?
   created_at               DateTime? @default(now()) @db.Timestamp(6)

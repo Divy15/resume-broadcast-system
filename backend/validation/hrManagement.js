@@ -26,10 +26,6 @@ module.exports = {
                 'any.required': 'hrEmail is required',
                 'string.email': 'hrEmail must be a valid email address'
             }),
-            positionName: Joi.string().required().messages({
-                'any.required': 'positionName is required',
-                'string.base': 'positionName must be a string'
-            }),
             companyWebsite: Joi.string().allow(null, '').required().messages({
                 'any.required': 'companyWebsite is required',
                 'string.uri': 'companyWebsite must be a valid URL'

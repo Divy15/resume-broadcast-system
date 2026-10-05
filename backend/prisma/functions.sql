@@ -476,7 +476,7 @@ Function 14
 
 CREATE OR REPLACE FUNCTION public.email_campaign_get_hr_list(
 	in_campaign_id integer)
-    RETURNS TABLE(hr_id integer, hr_name character varying, company character varying, email character varying, status character varying, created_at timestamp without time zone, send_at timestamp without time zone) 
+    RETURNS TABLE(hr_id integer, company character varying, hr_name character varying, email character varying, status character varying, created_at timestamp without time zone, send_at timestamp without time zone) 
     LANGUAGE 'sql'
     COST 100
     VOLATILE SECURITY DEFINER PARALLEL UNSAFE
@@ -485,8 +485,8 @@ CREATE OR REPLACE FUNCTION public.email_campaign_get_hr_list(
 AS $BODY$
 SELECT
     hi.id AS hr_id,
-    hi.hr_name AS hr_name,
     hi.company_name,
+	hi.hr_name,
     hi.email,
     ah.send_status AS status,  -- Now getting status from application_history
     ec.created_at,
@@ -847,7 +847,7 @@ Function 24
 
 CREATE OR REPLACE FUNCTION public.hrmanagement_get_hr_details(
 	in_hr_id integer)
-    RETURNS TABLE(id integer, company_name character varying, hr_name character varying, email character varying, mobileno character varying, company_website character varying, position_id integer, is_applied boolean, is_verified boolean, hr_linkedin_profile_link character varying) 
+    RETURNS TABLE(id integer, company_name character varying, hr_name character varying, email character varying, mobileno character varying, company_website character varying, is_applied boolean, is_verified boolean, hr_linkedin_profile_link character varying) 
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE SECURITY DEFINER PARALLEL SAFE 
@@ -866,7 +866,6 @@ RETURN QUERY
 	hr.email,
 	hr.mobileno,
 	hr.company_website,
-	hr.position_id,
 	hr.is_applied,
 	hr.is_verified,
 	hr.hr_linkedin_profile_link
@@ -893,7 +892,7 @@ CREATE OR REPLACE FUNCTION public.hrmanagement_get_hr_info_list(
 	in_filtername character varying,
 	in_page integer,
 	in_limit integer)
-    RETURNS TABLE(id integer, company_name character varying, hr_name character varying, position_name character varying, is_applied boolean, is_verified boolean, created_at timestamp without time zone, last_applied_at timestamp without time zone, total_count bigint) 
+    RETURNS TABLE(id integer, company_name character varying, hr_name character varying, is_applied boolean, is_verified boolean, created_at timestamp without time zone, last_applied_at timestamp without time zone, hr_linkedin_profile_link character varying, total_count bigint) 
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE SECURITY DEFINER PARALLEL UNSAFE
@@ -907,14 +906,13 @@ BEGIN
 		hr.id,
 		hr.company_name,
 		hr.hr_name,
-		pm.position_name,
 		hr.is_applied,
 		hr.is_verified,
 		hr.created_at,        -- 3. SELECTING BARE CREATION TIME
 		ap.last_send_at,      -- 4. SELECTING AGGREGATED VALUE FROM OUR LEFT JOIN
+		hr.hr_linkedin_profile_link,
 		COUNT(*) OVER() AS total_count
 	from hr_info hr
-	join position_master pm on pm.id = hr.position_id
 	
 	/* 5. LEFT JOIN BRINGS THE LATEST APPLICATION TIMESTAMP OR NULL PER HR */
 	left join (
@@ -927,8 +925,7 @@ BEGIN
 	WHERE hr.user_id = $1';
 
 	IF in_searchterm IS NOT NULL THEN
-		SQL := SQL || ' AND (hr.company_name ilike ' || quote_literal(in_searchterm || '%') || ' OR hr.hr_name ilike ' ||
-		quote_literal(in_searchterm || '%') || ' )';
+		SQL := SQL || ' AND (hr.company_name ilike ' || quote_literal(in_searchterm || '%') || ' )';
 	END IF;
 
 	IF in_filtername <> 'all_records' THEN
@@ -1205,7 +1202,6 @@ CREATE OR REPLACE FUNCTION public.hrmanagement_store_hr_info(
 	in_hrname character varying,
 	in_hremail character varying,
 	in_hrmobile character varying,
-	in_positionname character varying,
 	in_hrlinkedprofile character varying)
     RETURNS void
     LANGUAGE 'plpgsql'
@@ -1213,34 +1209,23 @@ CREATE OR REPLACE FUNCTION public.hrmanagement_store_hr_info(
     VOLATILE SECURITY DEFINER PARALLEL UNSAFE
     SET search_path=public
 AS $BODY$
-DECLARE
-    var_position_id integer;
 BEGIN
-
-    INSERT INTO position_master(position_name)
-    VALUES (in_positionname)
-    ON CONFLICT (position_name)
-    DO UPDATE SET position_name = EXCLUDED.position_name
-    RETURNING id INTO var_position_id;
-
     INSERT INTO hr_info(
 		user_id,
         company_name,
-        hr_name,
+		hr_name,
         email,
         mobileno,
         company_website,
-        position_id,
 		hr_linkedin_profile_link
     )
     VALUES (
 		in_userid,
         in_companyname,
-        in_hrname,
+		in_hrname,
         in_hremail,
         in_hrmobile,
         in_companywebsite,
-        var_position_id,
 		in_hrlinkedprofile
     );
 

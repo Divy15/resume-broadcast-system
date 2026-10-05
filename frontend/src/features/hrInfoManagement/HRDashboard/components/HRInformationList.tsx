@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { type HRInforListProps } from "../types/dashboard.types";
+import { ExternalLink } from "lucide-react";
 
 export const HrInformationList = ({ dataList, selectedIds, setSelectedIds, page, limit }: HRInforListProps) => {
   const navigate = useNavigate();
@@ -46,15 +47,11 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds, page,
               <label className="px-2 text-xs">SELECT ALL</label>
             </th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Index</th>
-            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Company Details</th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">HR Name</th>
-            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Position name</th>
-            
-            {/* 1. NEW COLUMN HEADERS ADDED HERE */}
+            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Company Details</th>
+            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500 text-center">LinkedIn</th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Registered On</th>
-            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500">Last Applied</th>
-            
-            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500 flex justify-center">Status</th>
+            <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500 text-center">Applied Status</th>
             <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-500"></th>
           </tr>
         </thead>
@@ -72,25 +69,34 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds, page,
                   <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleSelect(item.id)} />
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-400">#{(page - 1) * limit + index + 1}</td>
+                <td className="px-6 py-4 text-sm font-semibold text-slate-800">{item.hr_name}</td>
                 <td className="px-6 py-4">
                   <span className="font-semibold text-slate-800">{item.company_name}</span>
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-600 font-medium">{item.hr_name}</td>
-                <td className="px-6 py-4 text-sm text-slate-600 font-medium">{item.position_name}</td>
+                <td className="px-6 py-4 text-center">
+                  {item.hr_linkedin_profile_link ? (
+                    <a href={item.hr_linkedin_profile_link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 flex justify-center items-center">
+                      <ExternalLink className="w-5 h-5 inline-block"/>
+                    </a>
+                  ) : "-"}
+                </td>
                 
-                {/* 2. NEW INTERACTIVE DATA CELLS RENDERED HERE */}
+                {/* Registered On */}
                 <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">
                   {formatDate(item.created_at)}
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap italic">
-                  {formatDate(item.last_applied_at)}
-                </td>
 
+                {/* Applied Status + Date */}
                 <td className="px-6 py-4">
                   {item.is_applied ? (
-                    <span className="flex justify-center items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Applied
-                    </span>
+                    <div className="flex flex-col items-center justify-center">
+                       <span className="flex justify-center items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-1">
+                         Applied
+                       </span>
+                       <span className="text-[10px] text-slate-500 italic whitespace-nowrap">
+                         {formatDate(item.last_applied_at)}
+                       </span>
+                    </div>
                   ) : (
                     <span className="flex justify-center items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600">
                       Not Applied
@@ -112,8 +118,7 @@ export const HrInformationList = ({ dataList, selectedIds, setSelectedIds, page,
             ))
           ) : (
             <tr>
-              {/* 3. UPDATED COLSPAN TO 9 TO MATCH ALL THE NEW HEADERS CORRECTLY */}
-              <td colSpan={9} className="px-6 py-10 text-center text-slate-500 italic">
+              <td colSpan={8} className="px-6 py-10 text-center text-slate-500 italic">
                 No HR information found.
               </td>
             </tr>

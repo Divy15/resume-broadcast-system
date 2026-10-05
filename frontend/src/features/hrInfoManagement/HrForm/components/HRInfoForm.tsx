@@ -1,24 +1,18 @@
-import React, { useEffect, useState, type ChangeEvent } from "react";
+import React, { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { HRFormService } from "../HRForm.service";
 import {FormField} from "../../../CommonComponent/FormField";
-import {type FormData, type FormErrors, type PositionListResult } from "../types/hrForm.types";
+import {type FormData, type FormErrors } from "../types/hrForm.types";
 
 export const HRInfoFormComp: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({ companyName: "", companyWebsite: "", hrName: "", hrEmail: "", hrMobile: "", positionName: "", hrLinkedInProfile: "" });
+  const [formData, setFormData] = useState<FormData>({ companyName: "", companyWebsite: "", hrName: "", hrEmail: "", hrMobile: "", hrLinkedInProfile: "" });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [positionList, setPositinList] = useState<Array<PositionListResult> | []>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === "hrMobile" && (!/^[0-9]*$/.test(value) || value.length > 10)) return;
-
-    if (name === "positionName") {
-      setShowDropdown(true);
-    };
 
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -30,8 +24,7 @@ export const HRInfoFormComp: React.FC = () => {
     if (!formData.hrName.trim()) newErrors.hrName = "Required";
     if (!/\S+@\S+\.\S+/.test(formData.hrEmail)) newErrors.hrEmail = "Invalid email";
     if (formData.hrMobile.length !== 10 && formData.hrMobile.length !== 0) newErrors.hrMobile = "Must be 10 digits";
-    if (!formData.positionName) newErrors.positionName = "Please enter position name.";
-    if (!formData.hrLinkedInProfile) newErrors.hrLinkedInProfile = "Please enter HR LinkedIn Profile linke.";
+    if (!formData.hrLinkedInProfile) newErrors.hrLinkedInProfile = "Please enter HR LinkedIn Profile link.";
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -50,36 +43,7 @@ export const HRInfoFormComp: React.FC = () => {
     }
   };
 
-  // Helper to select a position from the list
-  const handleSelectPosition = (name: string) => {
-    setFormData(prev => ({ ...prev, positionName: name }));
-    setShowDropdown(false);
-  };
-
-  useEffect(() => {
-    const fetchPositionList = async () => {
-      // Only fetch if there's a value, otherwise clear list
-      if (formData.positionName.trim() === "") {
-        setPositinList([]);
-        return;
-      }
-
-      try {
-        const data = {positionName : formData?.positionName};
-        const response = await HRFormService.positionList(data);
-        if(response?.data){
-          setPositinList(response?.data);
-        };
-      } catch (error) { console.error(error); }
-    };
-
-
-    const timer = setTimeout(() => {
-        fetchPositionList();
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [formData?.positionName])
+  // Position logic removed
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
@@ -101,28 +65,10 @@ export const HRInfoFormComp: React.FC = () => {
           </div>
 
           <div>
-            <FormField label="HR LinkedIn Profile Link" name="hrLinkedInProfile" value={formData.hrLinkedInProfile} onChange={handleChange} error={errors.hrName}/>
+            <FormField label="HR LinkedIn Profile Link" name="hrLinkedInProfile" value={formData.hrLinkedInProfile} onChange={handleChange} error={errors.hrLinkedInProfile}/>
           </div>
 
-          <div className="relative space-y-1">
-            <FormField label="Position Name" name="positionName" value={formData.positionName} onChange={handleChange} error={errors.positionName} 
-            onBlur={() => setTimeout(() => setShowDropdown(false), 200)}/>
-
-            {/* --- Position Dropdown --- */}
-            {showDropdown && positionList.length > 0 && (
-              <ul className="absolute z-10 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-40 overflow-y-auto mt-1">
-                {positionList.map((pos) => (
-                  <li 
-                    key={pos.id}
-                    onClick={() => handleSelectPosition(pos.position_name)}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-slate-700 border-b border-slate-50 last:border-none"
-                  >
-                    {pos.position_name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {/* Position Name Dropdown Removed */}
 
           <div className="flex justify-end gap-3 pt-4">
             <button type="button" className="px-6 py-2 text-slate-400 font-semibold" onClick={() => navigate(-1)}>Cancel</button>

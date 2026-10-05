@@ -42,7 +42,6 @@ async function storeHrInfo(req, res, next) {
     hrName,
     hrEmail,
     hrMobile,
-    positionName,
     hrLinkedInProfile
   } = req.body;
   const { id } = req.user;

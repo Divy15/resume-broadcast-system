@@ -6,7 +6,6 @@ export interface FormData {
     hrName: string; 
     hrEmail: string; 
     hrMobile: string; 
-    positionName: string;
     hrLinkedInProfile: string;
 }
 
@@ -26,7 +25,6 @@ companyWebsite: string;
 hrName: string; 
 hrEmail: string; 
 hrMobile: string; 
-positionName: string;
 };
 
 // Service file
