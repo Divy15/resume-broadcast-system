@@ -1,16 +1,23 @@
-
 // Used in HRInfoForm component
-export interface FormData { 
-    companyName: string; 
-    companyWebsite: string; 
-    hrName: string; 
-    hrEmail: string; 
-    hrMobile: string; 
+export interface HRDetail {
+    hrName: string;
+    hrEmail: string;
+    hrMobile: string;
     hrLinkedInProfile: string;
 }
 
+export interface FormData { 
+    companyName: string; 
+    companyWebsite: string; 
+    positionName: string;
+    hrDetails: HRDetail[];
+}
+
 // Used in HRInfoForm component
-export type FormErrors = Partial<Record<keyof FormData, string>>;
+export type HRDetailErrors = Partial<Record<keyof HRDetail, string>>;
+export type FormErrors = Partial<Record<"companyName" | "companyWebsite" | "positionName", string>> & {
+    hrDetails?: HRDetailErrors[];
+};
 
 // Used in HRInfoForm component
 export interface PositionListResult { 
@@ -20,11 +27,10 @@ export interface PositionListResult {
 
 // Service file
 export interface storeHRInfoProps {
-companyName: string; 
-companyWebsite: string; 
-hrName: string; 
-hrEmail: string; 
-hrMobile: string; 
+    companyName: string; 
+    companyWebsite: string; 
+    positionName: string;
+    hrDetails: HRDetail[];
 };
 
 // Service file

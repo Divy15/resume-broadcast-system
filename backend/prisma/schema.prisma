@@ -65,6 +65,7 @@ model HrInfo {
   is_verified              Boolean?
   created_at               DateTime? @default(now()) @db.Timestamp(6)
   hr_linkedin_profile_link String?   @db.VarChar
+  position_id              Int?
 
   @@map("hr_info")
 }

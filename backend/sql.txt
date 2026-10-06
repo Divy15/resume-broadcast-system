@@ -122,7 +122,8 @@ CREATE OR REPLACE FUNCTION public.hrmanagement_store_hr_info(
 	in_hrname character varying,
 	in_hremail character varying,
 	in_hrmobile character varying,
-	in_positionname character varying)
+	in_positionname character varying,
+	in_hrlinkedprofile character varying)
     RETURNS void
     LANGUAGE 'plpgsql'
     COST 100
@@ -146,7 +147,8 @@ BEGIN
         email,
         mobileno,
         company_website,
-        position_id
+        position_id,
+		hr_linkedin_profile_link
     )
     VALUES (
 		in_userid,
@@ -155,7 +157,8 @@ BEGIN
         in_hremail,
         in_hrmobile,
         in_companywebsite,
-        var_position_id
+        var_position_id,
+		in_hrlinkedprofile
     );
 
 END;

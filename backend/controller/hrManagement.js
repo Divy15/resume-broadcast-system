@@ -36,29 +36,26 @@ async function dashboardCount(req, res, next) {
 
 // store hr info
 async function storeHrInfo(req, res, next) {
-  const {
-    companyName,
-    companyWebsite,
-    hrName,
-    hrEmail,
-    hrMobile,
-    hrLinkedInProfile
-  } = req.body;
+  const { companyName, companyWebsite, positionName, hrDetails } = req.body;
   const { id } = req.user;
   try {
-    await pgClient(
-      "select * from hrmanagement_store_hr_info($1, $2, $3, $4, $5, $6, $7, $8)",
-      [
-        id,
-        companyName,
-        companyWebsite,
-        hrName,
-        hrEmail,
-        hrMobile,
-        positionName,
-        hrLinkedInProfile
-      ],
-    );
+    if (hrDetails && Array.isArray(hrDetails)) {
+      for (const hr of hrDetails) {
+        await pgClient(
+          "select * from hrmanagement_store_hr_info($1, $2, $3, $4, $5, $6, $7, $8)",
+          [
+            id,
+            companyName,
+            companyWebsite,
+            hr.hrName,
+            hr.hrEmail,
+            hr.hrMobile,
+            positionName,
+            hr.hrLinkedInProfile
+          ],
+        );
+      }
+    }
 
     return res.send({
       success: true,
